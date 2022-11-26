@@ -1,4 +1,5 @@
-library(dryadMMM)
+# remotes::install_github("hemicontinuous/dryad/R")
+library(dryad)
 library(readxl)
 ## Force multicore 
 Sys.setenv(R_FUTURE_FORK_ENABLE = "true")
