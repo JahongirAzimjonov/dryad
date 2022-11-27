@@ -5,7 +5,7 @@
 
 ## Introduction
 
-  * **What is dryad MMM**: dryad is a fork of Robyn, the semi-automated and open-sourced Marketing Mix Modeling (MMM) package from Meta 
+ **What is dryad MMM**: dryad is a fork of Robyn, the semi-automated and open-sourced Marketing Mix Modeling (MMM) package from Meta 
   Marketing Science. It uses various machine learning techniques (Ridge regression, multi-objective evolutionary algorithm for hyperparameter optimization, time-series decomposition for trend & season, gradient-based optimization for budget allocation etc.) to define media channel efficiency and effectivity, explore adstock rates and saturation curves. It extends Robyn by using a nonparametric approach to statistical inference that relies on large amounts of computation rather than mathematical analysis and distributional assumptions of traditional parametric inference. This approach has been shown to provide asymptotically accurate inferences for a wide variety of statistics.
   
 ## The Interpretability-Flexibility tradeoff
@@ -30,7 +30,8 @@ There exists no universally best model. Not only that, but there is evidence tha
 | Robustness      | Prone to over-fitting             | Designed for out-of-sample performance |
 | Diagnostics     | Extensive                         | Limited                                |
   
-##Machine learning vs econometric modelling
+## Machine learning vs econometric modelling
+
 Machine learning is frequently an algorithmic form of statistical model estimation in which the data production process is viewed as an unknown. Model selection and inference are automated, with an emphasis on large volumes of data processing to construct robust models. It can be thought of as a high-efficiency data compression approach developed to give predictors in complicated situations with non-linear relationships between input and output variables and typically high-dimensional input space. Machine learners tend to balance data filtering with the objective of creating accurate and robust conclusions, which are frequently discrete and categorical functions of input data. This is fundamentally different from maximum likelihood estimators used in standard econometric models, which presume that the data was created by the model. These generally have over-fitting issues, particularly when used to high-dimensional datasets. Given the complexity of current datasets, whether limit order books or high-dimensional financial time series, it is becoming increasingly difficult to make inferences based on a known data generating process. Even if an economic interpretation of the data creation process can be provided, it is a legitimate assumption that the precise form cannot be known all of the time.
 
 As a result, the paradigm for data analysis provided by machine learning differs significantly from the standard econometric modelling and testing framework. Out-of-sample forecasting and comprehending the bias-variance tradeoff replace traditional fit measures like as $R^2$, t-values, p-values, and the concept of statistical significance. 
