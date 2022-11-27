@@ -20,3 +20,4 @@
 | Scalability     | Limited to lower-dimensional data | Scales to high-dimensional input data  |
 | Robustness      | Prone to over-fitting             | Designed for out-of-sample performance |
 | Diagnostics     | Extensive                         | Limited                                |
+  
