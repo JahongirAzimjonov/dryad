@@ -1,5 +1,5 @@
 # dryad MMM <img src='R/data/logo.png' align="right" height="169px" />
-### Marketing Mix Model with a nonparametric approach to inference based on bootstrap estimate of the covariance matrix of the order statistic
+### Marketing Mix Model with bootstrap estimates
 
 ---
 
