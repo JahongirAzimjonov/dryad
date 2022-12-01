@@ -38,34 +38,7 @@ library(car)
 # paid_media_spends (set of paid media variables)
 # paid_media_vars (set of exposure metrics, if they are available, usually these will be impressions)
 
-################################################################
-#### Step 1: Load data
-## Load data, define dev_var
-# setwd("P:/charles.shaw/EA/DATA")
 
-
-
-
-# data("dt_simulated_weekly")
-# mydata <- dt_simulated_weekly
-# 
-# depvar <- data$depvar
-# depvar <- dt_simulated_weekly$revenue
-# # print(depvar)
-# 
-# The index of the depvar_name in the main dataframe is determined manually by checking df colnames as below
-# colnames(md)
-# # In our case it is at the third index of df column names
-# depvar_name <- colnames(md)[3]
-# depvar_name
-# paid_media_spends <- c("tv_S", "ooh_S", "print_S", "facebook_S", "search_S") # enter paid media spends here
-# context_vars <- c("competitor_sales_B", "events")
-# paid_media_colors = rainbow(length(paid_media_spends))
-# 
-# get_my_data <- function(dt){
-#   return(dt)
-# }
-# 
 # mydata <- get_my_data(dt = md)
 # mydata
 # 
@@ -181,7 +154,7 @@ cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
 #  [calculate] X->Y transfer entropy
 #  [calculate] Y->X transfer entropy
 #  separate TE test for each spend variable
-transfer_entropy_test <- function(entropy_method="Renyi", mydata, paid_media_spends, depvar, 
+transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_spends, depvar, 
                                   depvar_name, csv_output_dir, plt_output_dir){
   te_excel_output_file_path <- paste(csv_output_dir, '/transfer_entropy.xlsx', sep="")
   wb_te <- createWorkbook()
@@ -652,7 +625,7 @@ run_diagnostics <- function(mydata){
   my_paid_media_spends <- InputCollect$paid_media_spends
   # my_paid_media_spends
   # c("tv_S", "ooh_S", "print_S", "facebook_S", "search_S") # enter paid media spends here
-  my_paid_media_impressions <- c("facebook_I")
+  my_paid_media_impressions <- <- InputCollect$paid_media_vars
   my_context_vars <- InputCollect$context_vars
   # my_context_vars
   # c("competitor_sales_B", "events")
