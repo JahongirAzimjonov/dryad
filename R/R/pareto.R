@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-robyn_pareto <- function(InputCollect, OutputModels,
+dryad_pareto <- function(InputCollect, OutputModels,
                          pareto_fronts = "auto",
                          min_candidates = 100,
                          calibration_constraint = 0.1,
@@ -82,25 +82,25 @@ robyn_pareto <- function(InputCollect, OutputModels,
     px <- rPref::low(resultHypParamPareto$nrmse) * rPref::low(resultHypParamPareto$decomp.rssd)
     resultHypParamPareto <- rPref::psel(resultHypParamPareto, px, top = nrow(resultHypParamPareto)) %>%
       arrange(.data$iterNG, .data$iterPar, .data$nrmse) %>%
-      rename("robynPareto" = ".level") %>%
-      select(.data$solID, .data$robynPareto)
+      rename("dryadPareto" = ".level") %>%
+      select(.data$solID, .data$dryadPareto)
     resultHypParam <- left_join(resultHypParam, resultHypParamPareto, by = "solID")
   } else {
-    resultHypParam <- mutate(resultHypParam, mape.qt10 = TRUE, robynPareto = 1, coef0 = NA)
+    resultHypParam <- mutate(resultHypParam, mape.qt10 = TRUE, dryadPareto = 1, coef0 = NA)
   }
 
   # Calculate combined weighted error scores
   resultHypParam$error_score <- errors_scores(resultHypParam)
 
-  # Bind robynPareto results
-  xDecompAgg <- left_join(xDecompAgg, select(resultHypParam, .data$robynPareto, .data$solID), by = "solID")
+  # Bind dryadPareto results
+  xDecompAgg <- left_join(xDecompAgg, select(resultHypParam, .data$dryadPareto, .data$solID), by = "solID")
   decompSpendDist <- bind_rows(lapply(OutModels, function(x) {
     mutate(x$resultCollect$decompSpendDist, trial = x$trial)
   })) %>%
     {
       if (!hyper_fixed) mutate(., solID = paste(.data$trial, .data$iterNG, .data$iterPar, sep = "_")) else .
     } %>%
-    left_join(select(resultHypParam, .data$robynPareto, .data$solID), by = "solID")
+    left_join(select(resultHypParam, .data$dryadPareto, .data$solID), by = "solID")
 
   # Prepare parallel loop
   if (TRUE) {
@@ -110,32 +110,32 @@ robyn_pareto <- function(InputCollect, OutputModels,
     if (nrow(resultHypParam) == 1) pareto_fronts <- 1
     if ("auto" %in% pareto_fronts) {
       n_pareto <- resultHypParam %>%
-        filter(!is.na(.data$robynPareto)) %>%
+        filter(!is.na(.data$dryadPareto)) %>%
         nrow()
       if (n_pareto <= min_candidates & nrow(resultHypParam) > 1 & !calibrated) {
         stop(paste(
           "Less than", min_candidates, "candidates in pareto fronts.",
-          "Increase iterations to get more model candidates or decrease min_candidates in robyn_output()"
+          "Increase iterations to get more model candidates or decrease min_candidates in dryad_output()"
         ))
       }
       auto_pareto <- resultHypParam %>%
-        filter(!is.na(.data$robynPareto)) %>%
-        group_by(.data$robynPareto) %>%
+        filter(!is.na(.data$dryadPareto)) %>%
+        group_by(.data$dryadPareto) %>%
         summarise(n = n_distinct(.data$solID)) %>%
         mutate(n_cum = cumsum(.data$n)) %>%
         filter(.data$n_cum >= min_candidates) %>%
         slice(1)
       message(sprintf(
         ">> Automatically selected %s Pareto-fronts to contain at least %s pareto-optimal models (%s)",
-        auto_pareto$robynPareto, min_candidates, auto_pareto$n_cum
+        auto_pareto$dryadPareto, min_candidates, auto_pareto$n_cum
       ))
-      pareto_fronts <- as.integer(auto_pareto$robynPareto)
+      pareto_fronts <- as.integer(auto_pareto$dryadPareto)
     }
     pareto_fronts_vec <- 1:pareto_fronts
 
-    decompSpendDistPar <- decompSpendDist[decompSpendDist$robynPareto %in% pareto_fronts_vec, ]
-    resultHypParamPar <- resultHypParam[resultHypParam$robynPareto %in% pareto_fronts_vec, ]
-    xDecompAggPar <- xDecompAgg[xDecompAgg$robynPareto %in% pareto_fronts_vec, ]
+    decompSpendDistPar <- decompSpendDist[decompSpendDist$dryadPareto %in% pareto_fronts_vec, ]
+    resultHypParamPar <- resultHypParam[resultHypParam$dryadPareto %in% pareto_fronts_vec, ]
+    xDecompAggPar <- xDecompAgg[xDecompAgg$dryadPareto %in% pareto_fronts_vec, ]
     respN <- NULL
   }
 
@@ -143,7 +143,7 @@ robyn_pareto <- function(InputCollect, OutputModels,
     resp_collect <- foreach(
       respN = seq_along(decompSpendDistPar$rn), .combine = rbind
     ) %dorng% {
-      get_resp <- robyn_response(
+      get_resp <- dryad_response(
         media_metric = decompSpendDistPar$rn[respN],
         select_model = decompSpendDistPar$solID[respN],
         metric_value = decompSpendDistPar$mean_spend[respN],
@@ -165,7 +165,7 @@ robyn_pareto <- function(InputCollect, OutputModels,
     getDoParWorkers()
   } else {
     resp_collect <- lapply(seq_along(decompSpendDistPar$rn), function(respN) {
-      get_resp <- robyn_response(
+      get_resp <- dryad_response(
         media_metric = decompSpendDistPar$rn[respN],
         select_model = decompSpendDistPar$solID[respN],
         metric_value = decompSpendDistPar$mean_spend[respN],
@@ -216,11 +216,11 @@ robyn_pareto <- function(InputCollect, OutputModels,
   for (pf in pareto_fronts_vec) {
     plotMediaShare <- filter(
       xDecompAgg,
-      .data$robynPareto == pf,
+      .data$dryadPareto == pf,
       .data$rn %in% InputCollect$paid_media_spends
     )
     uniqueSol <- unique(plotMediaShare$solID)
-    plotWaterfall <- xDecompAgg[xDecompAgg$robynPareto == pf, ]
+    plotWaterfall <- xDecompAgg[xDecompAgg$dryadPareto == pf, ]
     dt_mod <- InputCollect$dt_mod
     dt_modRollWind <- InputCollect$dt_modRollWind
     if (!quiet & length(unique(xDecompAgg$solID)) > 1) {
@@ -527,7 +527,7 @@ robyn_pareto <- function(InputCollect, OutputModels,
       plot7data <- xDecompVecImmeCaov
 
       ## 8. Bootstrapped ROI/CPA with CIs
-      # plot8data <- "Empty" # Filled when running robyn_onepagers() with clustering data
+      # plot8data <- "Empty" # Filled when running dryad_onepagers() with clustering data
 
       # Gather all results
       mediaVecCollect <- bind_rows(mediaVecCollect, list(
