@@ -6,11 +6,11 @@
 ####################################################################
 #' Generate and Export Plots
 #'
-#' @rdname robyn_outputs
+#' @rdname dryad_outputs
 #' @return Invisible list with \code{ggplot} plots.
 #' @export
-robyn_plots <- function(InputCollect, OutputCollect, export = TRUE) {
-  check_class("robyn_outputs", OutputCollect)
+dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
+  check_class("dryad_outputs", OutputCollect)
   pareto_fronts <- OutputCollect$pareto_fronts
   hyper_fixed <- OutputCollect$hyper_fixed
   temp_all <- OutputCollect$allPareto
@@ -64,11 +64,11 @@ robyn_plots <- function(InputCollect, OutputCollect, export = TRUE) {
     ## Hyperparameter sampling distribution
     if (length(temp_all) > 0) {
       resultHypParam <- temp_all$resultHypParam
-      hpnames_updated <- c(names(OutputCollect$OutputModels$hyper_updated), "robynPareto")
+      hpnames_updated <- c(names(OutputCollect$OutputModels$hyper_updated), "dryadPareto")
       hpnames_updated <- str_replace(hpnames_updated, "lambda", "lambda_hp")
       resultHypParam.melted <- resultHypParam %>%
         select(all_of(hpnames_updated)) %>%
-        tidyr::gather("variable", "value", -.data$robynPareto) %>%
+        tidyr::gather("variable", "value", -.data$dryadPareto) %>%
         mutate(variable = ifelse(.data$variable == "lambda_hp", "lambda", .data$variable))
       all_plots[["pSamp"]] <- ggplot(
         resultHypParam.melted,
@@ -100,9 +100,9 @@ robyn_plots <- function(InputCollect, OutputCollect, export = TRUE) {
       resultHypParam <- temp_all$resultHypParam
       if (!is.null(InputCollect$calibration_input)) {
         resultHypParam <- resultHypParam %>%
-          mutate(iterations = ifelse(is.na(.data$robynPareto), NA, .data$iterations))
+          mutate(iterations = ifelse(is.na(.data$dryadPareto), NA, .data$iterations))
         # Show blue dots on top of grey dots
-        resultHypParam <- resultHypParam[order(!is.na(resultHypParam$robynPareto)), ]
+        resultHypParam <- resultHypParam[order(!is.na(resultHypParam$dryadPareto)), ]
       }
       calibrated <- !is.null(InputCollect$calibration_input)
       pParFront <- ggplot(resultHypParam, aes(
@@ -141,7 +141,7 @@ robyn_plots <- function(InputCollect, OutputCollect, export = TRUE) {
         } else {
           pf_color <- "salmon"
         }
-        temp <- resultHypParam[resultHypParam$robynPareto %in% pfs, ]
+        temp <- resultHypParam[resultHypParam$dryadPareto %in% pfs, ]
         if (nrow(temp) > 1) {
           pParFront <- pParFront + geom_line(
             data = temp,
@@ -219,14 +219,14 @@ robyn_plots <- function(InputCollect, OutputCollect, export = TRUE) {
 
 
 ####################################################################
-#' Generate and Export Robyn One-Pager Plots
+#' Generate and Export dryad One-Pager Plots
 #'
-#' @inheritParams robyn_outputs
-#' @inheritParams robyn_csv
+#' @inheritParams dryad_outputs
+#' @inheritParams dryad_csv
 #' @return Invisible list with \code{patchwork} plot(s).
 #' @export
-robyn_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, quiet = FALSE, export = TRUE) {
-  check_class("robyn_outputs", OutputCollect)
+dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, quiet = FALSE, export = TRUE) {
+  check_class("dryad_outputs", OutputCollect)
   if (TRUE) {
     pareto_fronts <- OutputCollect$pareto_fronts
     hyper_fixed <- OutputCollect$hyper_fixed
@@ -245,12 +245,12 @@ robyn_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
   if (check_parallel_plot()) registerDoParallel(OutputCollect$cores) else registerDoSEQ()
   if (!hyper_fixed) {
     pareto_fronts_vec <- 1:pareto_fronts
-    count_mod_out <- nrow(resultHypParam[resultHypParam$robynPareto %in% pareto_fronts_vec, ])
+    count_mod_out <- nrow(resultHypParam[resultHypParam$dryadPareto %in% pareto_fronts_vec, ])
   } else {
     pareto_fronts_vec <- 1
     count_mod_out <- nrow(resultHypParam)
   }
-  all_fronts <- unique(xDecompAgg$robynPareto)
+  all_fronts <- unique(xDecompAgg$dryadPareto)
   all_fronts <- sort(all_fronts[!is.na(all_fronts)])
   if (!all(pareto_fronts_vec %in% all_fronts)) pareto_fronts_vec <- all_fronts
 
@@ -270,7 +270,7 @@ robyn_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
   for (pf in pareto_fronts_vec) { # pf = pareto_fronts_vec[1]
 
     plotMediaShare <- filter(
-      xDecompAgg, .data$robynPareto == pf,
+      xDecompAgg, .data$dryadPareto == pf,
       .data$rn %in% InputCollect$paid_media_spends
     )
     uniqueSol <- unique(plotMediaShare$solID)
@@ -830,7 +830,7 @@ refresh_plots <- function(InputCollectRF, OutputCollectRF, ReportCollect, export
     geom_bar(alpha = 0.8, position = "dodge", stat = "identity", na.rm = TRUE) +
     facet_wrap(~ .data$refreshStatus, scales = "free") +
     theme_lares(grid = "X") +
-    scale_fill_manual(values = robyn_palette()$fill) +
+    scale_fill_manual(values = dryad_palette()$fill) +
     geom_text(aes(label = paste0(round(.data$percentage * 100, 1), "%")),
       size = 3, na.rm = TRUE,
       position = position_dodge(width = 0.9), hjust = -0.25
@@ -854,7 +854,7 @@ refresh_plots <- function(InputCollectRF, OutputCollectRF, ReportCollect, export
       size = 3, na.rm = TRUE, hjust = -0.4, fontface = "plain",
       position = position_dodge(width = 0.9)
     ) +
-    scale_color_manual(values = robyn_palette()$fill) +
+    scale_color_manual(values = dryad_palette()$fill) +
     scale_y_continuous(
       sec.axis = sec_axis(~ . * ySecScale), breaks = seq(0, ymax, 0.2),
       limits = c(0, ymax), name = "Total ROI"
@@ -881,7 +881,7 @@ refresh_plots <- function(InputCollectRF, OutputCollectRF, ReportCollect, export
 
 refresh_plots_json <- function(OutputCollectRF, json_file, export = TRUE) {
   outputs <- list()
-  chainData <- robyn_chain(json_file)
+  chainData <- dryad_chain(json_file)
   solID <- tail(names(chainData), 1)
   dayInterval <- chainData[[solID]]$InputCollect$dayInterval
   intervalType <- chainData[[solID]]$InputCollect$intervalType
