@@ -14,7 +14,7 @@ check_nas <- function(df) {
     strs <- sprintf("%s (%s | %s%%)", naVals$variable, naVals$missing, naVals$missingness)
     stop(paste0(
       "Dataset ", name, " contains missing (NA) values. ",
-      "These values must be removed or fixed for Robyn to properly work.\n  Missing values: ",
+      "These values must be removed or fixed for dryad to properly work.\n  Missing values: ",
       paste(strs, collapse = ", ")
     ))
   }
@@ -22,7 +22,7 @@ check_nas <- function(df) {
   if (any(have_inf > 0)) {
     stop(paste0(
       "Dataset ", name, " contains Inf values. ",
-      "These values must be removed or fixed for Robyn to properly work.\n  Check: ",
+      "These values must be removed or fixed for dryad to properly work.\n  Check: ",
       paste(names(which(have_inf > 0)), collapse = ", ")
     ))
   }
@@ -405,7 +405,7 @@ check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
   if (is.null(hyperparameters) && !quiet) {
     message(paste(
       "Input 'hyperparameters' not provided yet. To include them, run",
-      "robyn_inputs(InputCollect = InputCollect, hyperparameters = ...)"
+      "dryad_inputs(InputCollect = InputCollect, hyperparameters = ...)"
     ))
   } else {
     hyperparameters <- hyperparameters[which(!names(hyperparameters) %in% "lambda")]
@@ -619,12 +619,12 @@ check_InputCollect <- function(list) {
   }
 }
 
-check_robyn_name <- function(robyn_object, quiet = FALSE) {
-  if (!is.null(robyn_object)) {
-    if (!dir.exists(robyn_object)) {
-      file_end <- lares::right(robyn_object, 4)
+check_dryad_name <- function(dryad_object, quiet = FALSE) {
+  if (!is.null(dryad_object)) {
+    if (!dir.exists(dryad_object)) {
+      file_end <- lares::right(dryad_object, 4)
       if (file_end != ".RDS") {
-        stop("Input 'robyn_object' must has format .RDS")
+        stop("Input 'dryad_object' must has format .RDS")
       }
     }
   } else {
@@ -636,7 +636,7 @@ check_dir <- function(plot_folder) {
   file_end <- substr(plot_folder, nchar(plot_folder) - 3, nchar(plot_folder))
   if (file_end == ".RDS") {
     plot_folder <- dirname(plot_folder)
-    message("Using robyn object location: ", plot_folder)
+    message("Using dryad object location: ", plot_folder)
   } else {
     plot_folder <- file.path(dirname(plot_folder), basename(plot_folder))
   }
@@ -682,7 +682,7 @@ check_hyper_fixed <- function(InputCollect, dt_hyper_fixed, add_penalty_factor) 
     hypParamSamName <- c(hypParamSamName, paste0(for_penalty, "_penalty"))
   }
   if (hyper_fixed) {
-    ## Run robyn_mmm if using old model result tables
+    ## Run dryad_mmm if using old model result tables
     dt_hyper_fixed <- as_tibble(dt_hyper_fixed)
     if (nrow(dt_hyper_fixed) != 1) {
       stop(paste(
@@ -803,11 +803,11 @@ check_legacy_input <- function(InputCollect,
   legacyValues <- legacyValues[!unlist(lapply(legacyValues, is.null))]
   if (length(legacyValues) > 0) {
     warning(sprintf(
-      "Using legacy InputCollect values. Please set %s within robyn_run() instead",
+      "Using legacy InputCollect values. Please set %s within dryad_run() instead",
       v2t(names(legacyValues))
     ))
   }
-  # Overwrite InputCollect with robyn_run() inputs
+  # Overwrite InputCollect with dryad_run() inputs
   if (!is.null(cores)) InputCollect$cores <- cores
   if (!is.null(iterations)) InputCollect$iterations <- iterations
   if (!is.null(trials)) InputCollect$trials <- trials
@@ -818,9 +818,9 @@ check_legacy_input <- function(InputCollect,
 }
 
 check_run_inputs <- function(cores, iterations, trials, intercept_sign, nevergrad_algo) {
-  if (is.null(iterations)) stop("Must provide 'iterations' in robyn_run()")
-  if (is.null(trials)) stop("Must provide 'trials' in robyn_run()")
-  if (is.null(nevergrad_algo)) stop("Must provide 'nevergrad_algo' in robyn_run()")
+  if (is.null(iterations)) stop("Must provide 'iterations' in dryad_run()")
+  if (is.null(trials)) stop("Must provide 'trials' in dryad_run()")
+  if (is.null(nevergrad_algo)) stop("Must provide 'nevergrad_algo' in dryad_run()")
   opts <- c("non_negative", "unconstrained")
   if (!intercept_sign %in% opts) {
     stop(sprintf("Input 'intercept_sign' must be any of: %s", paste(opts, collapse = ", ")))
@@ -846,12 +846,12 @@ check_daterange <- function(date_min, date_max, dates) {
   }
 }
 
-check_refresh_data <- function(Robyn, dt_input) {
-  original_periods <- nrow(Robyn$listInit$InputCollect$dt_modRollWind)
+check_refresh_data <- function(dryad, dt_input) {
+  original_periods <- nrow(dryad$listInit$InputCollect$dt_modRollWind)
   new_periods <- nrow(filter(
-    dt_input, get(Robyn$listInit$InputCollect$date_var) > Robyn$listInit$InputCollect$window_end
+    dt_input, get(dryad$listInit$InputCollect$date_var) > dryad$listInit$InputCollect$window_end
   ))
-  it <- Robyn$listInit$InputCollect$intervalType
+  it <- dryad$listInit$InputCollect$intervalType
   if (new_periods > 0.5 * (original_periods + new_periods)) {
     warning(sprintf(
       paste(
