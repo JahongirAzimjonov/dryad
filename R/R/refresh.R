@@ -7,10 +7,10 @@
 #' Build Refresh Model
 #'
 #' @description
-#' \code{robyn_refresh()} builds updated models based on
-#' the previously built models saved in the \code{Robyn.RDS} object specified
-#' in \code{robyn_object}. For example, when updating the initial build with 4
-#' weeks of new data, \code{robyn_refresh()} consumes the selected model of
+#' \code{dryad_refresh()} builds updated models based on
+#' the previously built models saved in the \code{dryad.RDS} object specified
+#' in \code{dryad_object}. For example, when updating the initial build with 4
+#' weeks of new data, \code{dryad_refresh()} consumes the selected model of
 #' the initial build, sets lower and upper bounds of hyperparameters for the
 #' new build around the selected hyperparameters of the previous build,
 #' stabilizes the effect of baseline variables across old and new builds, and
@@ -18,11 +18,11 @@
 #' spend level. It returns the aggregated results with all previous builds for
 #' reporting purposes and produces reporting plots.
 #'
-#' You must run \code{robyn_save()} to select and save an initial model first,
+#' You must run \code{dryad_save()} to select and save an initial model first,
 #' before refreshing.
 #'
-#' \strong{When should \code{robyn_refresh()} NOT be used:}
-#' The \code{robyn_refresh()} function is suitable for
+#' \strong{When should \code{dryad_refresh()} NOT be used:}
+#' The \code{dryad_refresh()} function is suitable for
 #' updating within "reasonable periods". Two situations are considered better
 #' to rebuild model instead of refreshing:
 #'
@@ -32,10 +32,10 @@
 #' 2. New variables are added: If initial model had less variables than the ones
 #' we want to start using on new refresh model.
 #'
-#' @inheritParams robyn_run
-#' @inheritParams robyn_allocator
-#' @inheritParams robyn_outputs
-#' @inheritParams robyn_inputs
+#' @inheritParams dryad_run
+#' @inheritParams dryad_allocator
+#' @inheritParams dryad_outputs
+#' @inheritParams dryad_inputs
 #' @param dt_input data.frame. Should include all previous data and newly added
 #' data for the refresh.
 #' @param dt_holidays data.frame. Raw input holiday data. Load standard
@@ -44,12 +44,12 @@
 #' model build move forward. For example, \code{refresh_steps = 4} on weekly data
 #' means the \code{InputCollect$window_start} & \code{InputCollect$window_end}
 #' move forward 4 weeks. If \code{refresh_steps} is smaller than the number of
-#' newly provided data points, then Robyn would only use the first N steps of the
+#' newly provided data points, then dryad would only use the first N steps of the
 #' new data.
 #' @param refresh_mode Character. Options are "auto" and "manual". In auto mode,
-#' the \code{robyn_refresh()} function builds refresh models with given
+#' the \code{dryad_refresh()} function builds refresh models with given
 #' \code{refresh_steps} repeatedly until there's no more data available. I
-#' manual mode, the \code{robyn_refresh()} only moves forward \code{refresh_steps}
+#' manual mode, the \code{dryad_refresh()} only moves forward \code{refresh_steps}
 #' only once. "auto" mode has been deprecated when using \code{json_file} input.
 #' @param refresh_iters Integer. Iterations per refresh. Rule of thumb is, the
 #' more new data added, the more iterations needed. More reliable recommendation
@@ -62,44 +62,44 @@
 #' models (one-pagers and Pareto CSV files will already be generated).
 #' @param ... Additional parameters to overwrite original custom parameters
 #' passed into initial model.
-#' @return List. The Robyn object, class \code{robyn_refresh}.
+#' @return List. The dryad object, class \code{dryad_refresh}.
 #' @examples
 #' \dontrun{
 #' # Loading dummy data
 #' data("dt_simulated_weekly")
 #' data("dt_prophet_holidays")
-#' # Set the (pre-trained and exported) Robyn model JSON file
-#' json_file <- "~/Robyn_202208081444_init/RobynModel-2_55_4.json"
+#' # Set the (pre-trained and exported) dryad model JSON file
+#' json_file <- "~/dryad_202208081444_init/dryadModel-2_55_4.json"
 #'
-#' # Run \code{robyn_refresh()} with 13 weeks cadence in auto mode
-#' Robyn <- robyn_refresh(
+#' # Run \code{dryad_refresh()} with 13 weeks cadence in auto mode
+#' dryad <- dryad_refresh(
 #'   json_file = json_file,
 #'   dt_input = dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
+#'   dt_holidays = dryad::dt_prophet_holidays,
 #'   refresh_steps = 13,
 #'   refresh_mode = "auto",
 #'   refresh_iters = 200,
 #'   refresh_trials = 5
 #' )
 #'
-#' # Run \code{robyn_refresh()} with 4 weeks cadence in manual mode
-#' json_file2 <- "~/Robyn_202208081444_init/Robyn_202208090847_rf/RobynModel-1_2_3.json"
-#' Robyn <- robyn_refresh(
+#' # Run \code{dryad_refresh()} with 4 weeks cadence in manual mode
+#' json_file2 <- "~/dryad_202208081444_init/dryad_202208090847_rf/dryadModel-1_2_3.json"
+#' dryad <- dryad_refresh(
 #'   json_file = json_file2,
 #'   dt_input = dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
+#'   dt_holidays = dryad::dt_prophet_holidays,
 #'   refresh_steps = 4,
 #'   refresh_mode = "manual",
 #'   refresh_iters = 200,
 #'   refresh_trials = 5
 #' )
 #' }
-#' @return List. Same as \code{robyn_run()} but with refreshed models.
+#' @return List. Same as \code{dryad_run()} but with refreshed models.
 #' @export
-robyn_refresh <- function(json_file = NULL,
-                          robyn_object = NULL,
+dryad_refresh <- function(json_file = NULL,
+                          dryad_object = NULL,
                           dt_input = NULL,
-                          dt_holidays = Robyn::dt_prophet_holidays,
+                          dt_holidays = dryad::dt_prophet_holidays,
                           refresh_steps = 4,
                           refresh_mode = "manual",
                           refresh_iters = 1000,
@@ -118,29 +118,29 @@ robyn_refresh <- function(json_file = NULL,
 
     ## Load initial model
     if (!is.null(json_file)) {
-      Robyn <- list()
-      json <- robyn_read(json_file, step = 2, quiet = TRUE)
-      listInit <- suppressWarnings(robyn_recreate(
+      dryad <- list()
+      json <- dryad_read(json_file, step = 2, quiet = TRUE)
+      listInit <- suppressWarnings(dryad_recreate(
         json_file = json_file,
         dt_input = dt_input,
         dt_holidays = dt_holidays,
         quiet = FALSE, ...
       ))
       listInit$InputCollect$refreshSourceID <- json$ExportedModel$select_model
-      chainData <- robyn_chain(json_file)
+      chainData <- dryad_chain(json_file)
       listInit$InputCollect$refreshChain <- attr(chainData, "chain")
       listInit$InputCollect$refreshDepth <- refreshDepth <- length(attr(chainData, "chain"))
       listInit$OutputCollect$hyper_updated <- json$ExportedModel$hyper_updated
-      Robyn[["listInit"]] <- listInit
+      dryad[["listInit"]] <- listInit
       objectPath <- json$ExportedModel$plot_folder
       refreshCounter <- 1 # Dummy for now (legacy)
     }
-    if (!is.null(robyn_object)) {
-      RobynImported <- robyn_load(robyn_object)
-      Robyn <- RobynImported$Robyn
-      objectPath <- RobynImported$objectPath
-      robyn_object <- RobynImported$robyn_object
-      refreshCounter <- length(Robyn) - sum(names(Robyn) == "refresh")
+    if (!is.null(dryad_object)) {
+      dryadImported <- dryad_load(dryad_object)
+      dryad <- dryadImported$dryad
+      objectPath <- dryadImported$objectPath
+      dryad_object <- dryadImported$dryad_object
+      refreshCounter <- length(dryad) - sum(names(dryad) == "refresh")
       refreshDepth <- NULL # Dummy for now (legacy)
     }
     depth <- ifelse(!is.null(refreshDepth), refreshDepth, refreshCounter)
@@ -150,30 +150,30 @@ robyn_refresh <- function(json_file = NULL,
     } else {
       c("listInit", paste0("listRefresh", 1:(refreshCounter - 1)))
     }
-    if (!all(objectCheck %in% names(Robyn))) {
+    if (!all(objectCheck %in% names(dryad))) {
       stop(
-        "Saved Robyn object is corrupted. It should contain these elements:\n ",
+        "Saved dryad object is corrupted. It should contain these elements:\n ",
         paste(objectCheck, collapse = ", "),
         ".\n Please, re run the model or fix it manually."
       )
     }
 
     ## Check rule of thumb: 50% of data shouldn't be new
-    check_refresh_data(Robyn, dt_input)
+    check_refresh_data(dryad, dt_input)
 
     ## Get previous data
     if (refreshCounter == 1) {
-      InputCollectRF <- Robyn$listInit$InputCollect
-      listOutputPrev <- Robyn$listInit$OutputCollect
+      InputCollectRF <- dryad$listInit$InputCollect
+      listOutputPrev <- dryad$listInit$OutputCollect
       InputCollectRF$xDecompAggPrev <- listOutputPrev$xDecompAgg
-      if (length(unique(Robyn$listInit$OutputCollect$resultHypParam$solID)) > 1) {
-        stop("Run robyn_write() first to select and export any Robyn model")
+      if (length(unique(dryad$listInit$OutputCollect$resultHypParam$solID)) > 1) {
+        stop("Run dryad_write() first to select and export any dryad model")
       }
     } else {
       listName <- paste0("listRefresh", refreshCounter - 1)
-      InputCollectRF <- Robyn[[listName]][["InputCollect"]]
-      listOutputPrev <- Robyn[[listName]][["OutputCollect"]]
-      listReportPrev <- Robyn[[listName]][["ReportCollect"]]
+      InputCollectRF <- dryad[[listName]][["InputCollect"]]
+      listOutputPrev <- dryad[[listName]][["OutputCollect"]]
+      listReportPrev <- dryad[[listName]][["ReportCollect"]]
       ## Model selection from previous build
       if (!"error_score" %in% names(listOutputPrev$resultHypParam)) {
         listOutputPrev$resultHypParam <- as.data.frame(listOutputPrev$resultHypParam) %>%
@@ -189,7 +189,7 @@ robyn_refresh <- function(json_file = NULL,
     InputCollectRF$refreshCounter <- refreshCounter
     InputCollectRF$refresh_steps <- refresh_steps
     if (refresh_steps >= InputCollectRF$rollingWindowLength) {
-      stop("Refresh input data is completely new. Please rebuild model using robyn_run().")
+      stop("Refresh input data is completely new. Please rebuild model using dryad_run().")
     }
 
     ## Load new data
@@ -267,7 +267,7 @@ robyn_refresh <- function(json_file = NULL,
 
     ## Refresh hyperparameter bounds
     InputCollectRF$hyperparameters <- refresh_hyps(
-      initBounds = Robyn$listInit$OutputCollect$hyper_updated,
+      initBounds = dryad$listInit$OutputCollect$hyper_updated,
       listOutputPrev, refresh_steps,
       rollingWindowLength = InputCollectRF$rollingWindowLength
     )
@@ -275,16 +275,16 @@ robyn_refresh <- function(json_file = NULL,
     ## Feature engineering for refreshed data
     # Note that if custom prophet parameters were passed initially,
     # will be used again unless changed in ...
-    InputCollectRF <- robyn_engineering(InputCollectRF, ...)
+    InputCollectRF <- dryad_engineering(InputCollectRF, ...)
 
     ## Refresh model with adjusted decomp.rssd
-    # OutputCollectRF <- Robyn$listRefresh1$OutputCollect
+    # OutputCollectRF <- dryad$listRefresh1$OutputCollect
     if (is.null(InputCollectRF$calibration_input)) {
       rf_cal_constr <- listOutputPrev[["calibration_constraint"]]
     } else {
       rf_cal_constr <- 1
     }
-    OutputCollectRF <- robyn_run(
+    OutputCollectRF <- dryad_run(
       InputCollect = InputCollectRF,
       plot_folder = objectPath,
       calibration_constraint = rf_cal_constr,
@@ -433,18 +433,18 @@ robyn_refresh <- function(json_file = NULL,
       selectIDs = resultHypParamReport$solID
     )
     listNameUpdate <- paste0("listRefresh", refreshCounter)
-    Robyn[[listNameUpdate]] <- list(
+    dryad[[listNameUpdate]] <- list(
       InputCollect = InputCollectRF,
       OutputCollect = OutputCollectRF,
       ReportCollect = ReportCollect
     )
 
     #### Reporting plots
-    # InputCollectRF <- Robyn$listRefresh1$InputCollect
-    # OutputCollectRF <- Robyn$listRefresh1$OutputCollect
-    # ReportCollect <- Robyn$listRefresh1$ReportCollect
+    # InputCollectRF <- dryad$listRefresh1$InputCollect
+    # OutputCollectRF <- dryad$listRefresh1$OutputCollect
+    # ReportCollect <- dryad$listRefresh1$ReportCollect
     if (!is.null(json_file)) {
-      json_temp <- robyn_write(
+      json_temp <- dryad_write(
         InputCollectRF, OutputCollectRF,
         select_model = selectID,
         export = TRUE, quiet = TRUE, ...
@@ -469,7 +469,7 @@ robyn_refresh <- function(json_file = NULL,
   }
 
   # Save some parameters to print
-  Robyn[["refresh"]] <- list(
+  dryad[["refresh"]] <- list(
     selectIDs = ReportCollect$selectIDs,
     refresh_steps = refresh_steps,
     refresh_mode = refresh_mode,
@@ -478,23 +478,23 @@ robyn_refresh <- function(json_file = NULL,
     plots = plots
   )
 
-  # Save Robyn object locally
-  Robyn <- Robyn[order(names(Robyn))]
-  class(Robyn) <- c("robyn_refresh", class(Robyn))
+  # Save dryad object locally
+  dryad <- dryad[order(names(dryad))]
+  class(dryad) <- c("dryad_refresh", class(dryad))
   if (is.null(json_file)) {
-    message(">> Exporting results: ", robyn_object)
-    saveRDS(Robyn, file = robyn_object)
+    message(">> Exporting results: ", dryad_object)
+    saveRDS(dryad, file = dryad_object)
   } else {
-    robyn_write(InputCollectRF, OutputCollectRF, select_model = selectID, ...)
+    dryad_write(InputCollectRF, OutputCollectRF, select_model = selectID, ...)
   }
-  return(invisible(Robyn))
+  return(invisible(dryad))
 }
 
-#' @rdname robyn_refresh
-#' @aliases robyn_refresh
-#' @param x \code{robyn_refresh()} output.
+#' @rdname dryad_refresh
+#' @aliases dryad_refresh
+#' @param x \code{dryad_refresh()} output.
 #' @export
-print.robyn_refresh <- function(x, ...) {
+print.dryad_refresh <- function(x, ...) {
   top_models <- x$refresh$selectIDs
   top_models <- paste(top_models, sprintf("(%s)", 0:(length(top_models) - 1)))
   print(glued(
@@ -511,11 +511,11 @@ Models (IDs):
   ))
 }
 
-#' @rdname robyn_refresh
-#' @aliases robyn_refresh
-#' @param x \code{robyn_refresh()} output.
+#' @rdname dryad_refresh
+#' @aliases dryad_refresh
+#' @param x \code{dryad_refresh()} output.
 #' @export
-plot.robyn_refresh <- function(x, ...) plot((x$refresh$plots[[1]] / x$refresh$plots[[2]]), ...)
+plot.dryad_refresh <- function(x, ...) plot((x$refresh$plots[[1]] / x$refresh$plots[[2]]), ...)
 
 refresh_hyps <- function(initBounds, listOutputPrev, refresh_steps, rollingWindowLength) {
   initBoundsDis <- unlist(lapply(initBounds, function(x) ifelse(length(x) == 2, x[2] - x[1], 0)))
