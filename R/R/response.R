@@ -6,18 +6,18 @@
 ####################################################################
 #' Response Function
 #'
-#' \code{robyn_response()} returns the response for a given
+#' \code{dryad_response()} returns the response for a given
 #' spend level of a given \code{paid_media_vars} from a selected model
 #' result and selected model build (initial model, refresh model, etc.).
 #'
-#' @inheritParams robyn_allocator
+#' @inheritParams dryad_allocator
 #' @param media_metric A character. Selected media variable for the response.
 #' Must be one value from paid_media_spends, paid_media_vars or organic_vars
 #' @param metric_value Numeric. Desired metric value to return a response for.
-#' @param dt_hyppar A data.frame. When \code{robyn_object} is not provided, use
+#' @param dt_hyppar A data.frame. When \code{dryad_object} is not provided, use
 #' \code{dt_hyppar = OutputCollect$resultHypParam}. It must be provided along
 #' \code{select_model}, \code{dt_coef} and \code{InputCollect}.
-#' @param dt_coef A data.frame. When \code{robyn_object} is not provided, use
+#' @param dt_coef A data.frame. When \code{dryad_object} is not provided, use
 #' \code{dt_coef = OutputCollect$xDecompAgg}. It must be provided along
 #' \code{select_model}, \code{dt_hyppar} and \code{InputCollect}.
 #' @examples
@@ -27,7 +27,7 @@
 #' # Get marginal response (mResponse) and marginal ROI (mROI) for
 #' # the next 1k on 80k for search_S
 #' spend1 <- 80000
-#' Response1 <- robyn_response(
+#' Response1 <- dryad_response(
 #'   InputCollect = InputCollect,
 #'   OutputCollect = OutputCollect,
 #'   media_metric = "search_S",
@@ -38,7 +38,7 @@
 #'
 #' # Get response for 81k
 #' spend2 <- spend1 + 1000
-#' Response2 <- robyn_response(
+#' Response2 <- dryad_response(
 #'   InputCollect = InputCollect,
 #'   OutputCollect = OutputCollect,
 #'   media_metric = "search_S",
@@ -54,7 +54,7 @@
 #'
 #' # Example of getting paid media exposure response curves
 #' imps <- 1000000
-#' response_imps <- robyn_response(
+#' response_imps <- dryad_response(
 #'   InputCollect = InputCollect,
 #'   OutputCollect = OutputCollect,
 #'   media_metric = "facebook_I",
@@ -65,7 +65,7 @@
 #'
 #' # Get response for 80k for search_S from the a certain model SolID
 #' # in the current model output in the global environment
-#' robyn_response(
+#' dryad_response(
 #'   InputCollect = InputCollect,
 #'   OutputCollect = OutputCollect,
 #'   media_metric = "search_S",
@@ -74,12 +74,12 @@
 #'   dt_coef = OutputCollect$xDecompAgg
 #' )
 #' }
-#' @return List. Response value and plot. Class: \code{robyn_response}.
+#' @return List. Response value and plot. Class: \code{dryad_response}.
 #' @export
-robyn_response <- function(InputCollect = NULL,
+dryad_response <- function(InputCollect = NULL,
                            OutputCollect = NULL,
                            json_file = NULL,
-                           robyn_object = NULL,
+                           dryad_object = NULL,
                            select_build = NULL,
                            media_metric = NULL,
                            select_model = NULL,
@@ -92,9 +92,9 @@ robyn_response <- function(InputCollect = NULL,
 
   ### Use previously exported model using json_file
   if (!is.null(json_file)) {
-    if (is.null(InputCollect)) InputCollect <- robyn_inputs(json_file = json_file, ...)
+    if (is.null(InputCollect)) InputCollect <- dryad_inputs(json_file = json_file, ...)
     if (is.null(OutputCollect)) {
-      OutputCollect <- robyn_run(
+      OutputCollect <- dryad_run(
         InputCollect = InputCollect,
         json_file = json_file,
         export = FALSE,
@@ -105,15 +105,15 @@ robyn_response <- function(InputCollect = NULL,
     if (is.null(dt_hyppar)) dt_hyppar <- OutputCollect$resultHypParam
     if (is.null(dt_coef)) dt_coef <- OutputCollect$xDecompAgg
   } else {
-    if (!is.null(robyn_object)) {
-      if (!file.exists(robyn_object)) {
-        stop("File does not exist or is somewhere else. Check: ", robyn_object)
+    if (!is.null(dryad_object)) {
+      if (!file.exists(dryad_object)) {
+        stop("File does not exist or is somewhere else. Check: ", dryad_object)
       } else {
-        Robyn <- readRDS(robyn_object)
-        objectPath <- dirname(robyn_object)
-        objectName <- sub("'\\..*$", "", basename(robyn_object))
+        dryad <- readRDS(dryad_object)
+        objectPath <- dirname(dryad_object)
+        objectName <- sub("'\\..*$", "", basename(dryad_object))
       }
-      select_build_all <- 0:(length(Robyn) - 1)
+      select_build_all <- 0:(length(dryad) - 1)
       if (is.null(select_build)) {
         select_build <- max(select_build_all)
         if (!quiet && length(select_build_all) > 1) {
@@ -127,8 +127,8 @@ robyn_response <- function(InputCollect = NULL,
         stop("'select_build' must be one value of ", paste(select_build_all, collapse = ", "))
       }
       listName <- ifelse(select_build == 0, "listInit", paste0("listRefresh", select_build))
-      InputCollect <- Robyn[[listName]][["InputCollect"]]
-      OutputCollect <- Robyn[[listName]][["OutputCollect"]]
+      InputCollect <- dryad[[listName]][["InputCollect"]]
+      OutputCollect <- dryad[[listName]][["OutputCollect"]]
       dt_hyppar <- OutputCollect$resultHypParam
       dt_coef <- OutputCollect$xDecompAgg
     } else {
@@ -136,7 +136,7 @@ robyn_response <- function(InputCollect = NULL,
       if (is.null(dt_hyppar)) dt_hyppar <- OutputCollect$resultHypParam
       if (is.null(dt_coef)) dt_coef <- OutputCollect$xDecompAgg
       if (any(is.null(dt_hyppar), is.null(dt_coef), is.null(InputCollect), is.null(OutputCollect))) {
-        stop("When 'robyn_object' is not provided, 'InputCollect' & 'OutputCollect' must be provided")
+        stop("When 'dryad_object' is not provided, 'InputCollect' & 'OutputCollect' must be provided")
       }
     }
   }
@@ -272,7 +272,7 @@ robyn_response <- function(InputCollect = NULL,
     scale_x_abbr() +
     scale_y_abbr()
 
-  class(Response) <- unique(c("robyn_response", class(Response)))
+  class(Response) <- unique(c("dryad_response", class(Response)))
   return(list(
     response = Response,
     plot = p_res
