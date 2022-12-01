@@ -4,39 +4,39 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Import and Export Robyn JSON files
+#' Import and Export dryad JSON files
 #'
-#' \code{robyn_write()} generates a JSON file with all the information
-#' required to replicate a single Robyn model.
+#' \code{dryad_write()} generates a JSON file with all the information
+#' required to replicate a single dryad model.
 #'
-#' @inheritParams robyn_outputs
-#' @param InputCollect \code{robyn_inputs()} output.
+#' @inheritParams dryad_outputs
+#' @param InputCollect \code{dryad_inputs()} output.
 #' @param select_model Character. Which model ID do you want to export
 #' into the JSON file?
 #' @param dir Character. Existing directory to export JSON file to.
 #' @param ... Additional parameters.
 #' @examples
 #' \dontrun{
-#' InputCollectJSON <- robyn_inputs(
-#'   dt_input = Robyn::dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
-#'   json_file = "~/Desktop/RobynModel-1_29_12.json"
+#' InputCollectJSON <- dryad_inputs(
+#'   dt_input = dryad::dt_simulated_weekly,
+#'   dt_holidays = dryad::dt_prophet_holidays,
+#'   json_file = "~/Desktop/dryadModel-1_29_12.json"
 #' )
 #' print(InputCollectJSON)
 #' }
 #' @return (invisible) List. Contains all inputs and outputs of exported model.
-#' Class: \code{robyn_write}.
+#' Class: \code{dryad_write}.
 #' @export
-robyn_write <- function(InputCollect,
+dryad_write <- function(InputCollect,
                         OutputCollect = NULL,
                         select_model = NULL,
                         dir = OutputCollect$plot_folder,
                         export = TRUE,
                         quiet = FALSE, ...) {
   # Checks
-  stopifnot(inherits(InputCollect, "robyn_inputs"))
+  stopifnot(inherits(InputCollect, "dryad_inputs"))
   if (!is.null(OutputCollect)) {
-    stopifnot(inherits(OutputCollect, "robyn_outputs"))
+    stopifnot(inherits(OutputCollect, "dryad_outputs"))
     stopifnot(select_model %in% OutputCollect$allSolutions)
     if (is.null(select_model) && length(OutputCollect$allSolutions == 1)) {
       select_model <- OutputCollect$allSolutions
@@ -85,9 +85,9 @@ robyn_write <- function(InputCollect,
   }
 
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
-  filename <- sprintf("%s/RobynModel-%s.json", dir, select_model)
+  filename <- sprintf("%s/dryadModel-%s.json", dir, select_model)
   filename <- gsub("//", "/", filename)
-  class(ret) <- c("robyn_write", class(ret))
+  class(ret) <- c("dryad_write", class(ret))
   attr(ret, "json_file") <- filename
   if (export) {
     if (!quiet) message(sprintf(">> Exported model %s as %s", select_model, filename))
@@ -97,11 +97,11 @@ robyn_write <- function(InputCollect,
 }
 
 
-#' @rdname robyn_write
-#' @aliases robyn_write
-#' @param x \code{robyn_read()} or \code{robyn_write()} output.
+#' @rdname dryad_write
+#' @aliases dryad_write
+#' @param x \code{dryad_read()} or \code{dryad_write()} output.
 #' @export
-print.robyn_write <- function(x, ...) {
+print.dryad_write <- function(x, ...) {
   print(glued(
     "
    Exported directory: {x$ExportedModel$plot_folder}
@@ -153,12 +153,12 @@ print.robyn_write <- function(x, ...) {
 }
 
 
-#' @rdname robyn_write
-#' @aliases robyn_write
+#' @rdname dryad_write
+#' @aliases dryad_write
 #' @param json_file Character. JSON file name to read and import as list.
 #' @param step Integer. 1 for import only and 2 for import and ouput.
 #' @export
-robyn_read <- function(json_file = NULL, step = 1, quiet = FALSE, ...) {
+dryad_read <- function(json_file = NULL, step = 1, quiet = FALSE, ...) {
   if (!is.null(json_file)) {
     if (inherits(json_file, "character")) {
       if (lares::right(tolower(json_file), 4) != "json") {
@@ -176,17 +176,17 @@ robyn_read <- function(json_file = NULL, step = 1, quiet = FALSE, ...) {
         stop("JSON file must contain ExportedModel element")
       }
       if (!quiet) message("Imported JSON file succesfully: ", json_file)
-      class(json) <- c("robyn_read", class(json))
+      class(json) <- c("dryad_read", class(json))
       return(json)
     }
   }
   return(json_file)
 }
 
-#' @rdname robyn_write
-#' @aliases robyn_write
+#' @rdname dryad_write
+#' @aliases dryad_write
 #' @export
-print.robyn_read <- function(x, ...) {
+print.dryad_read <- function(x, ...) {
   a <- x$InputCollect
   print(glued(
     "
@@ -226,25 +226,25 @@ Adstock: {a$adstock}
 
   if (!is.null(x$ExportedModel)) {
     temp <- x
-    class(temp) <- "robyn_write"
+    class(temp) <- "dryad_write"
     print(glued("\n\n############ Exported Model ############\n"))
     print(temp)
   }
   return(invisible(x))
 }
 
-#' @rdname robyn_write
-#' @aliases robyn_write
+#' @rdname dryad_write
+#' @aliases dryad_write
 #' @export
-robyn_recreate <- function(json_file, quiet = FALSE, ...) {
-  json <- robyn_read(json_file, quiet = TRUE)
+dryad_recreate <- function(json_file, quiet = FALSE, ...) {
+  json <- dryad_read(json_file, quiet = TRUE)
   message(">>> Recreating model ", json$ExportedModel$select_model)
-  InputCollect <- robyn_inputs(
+  InputCollect <- dryad_inputs(
     json_file = json_file,
     quiet = quiet,
     ...
   )
-  OutputCollect <- robyn_run(
+  OutputCollect <- dryad_run(
     InputCollect = InputCollect,
     json_file = json_file,
     export = FALSE,
@@ -258,8 +258,8 @@ robyn_recreate <- function(json_file, quiet = FALSE, ...) {
 }
 
 # Import the whole chain any refresh model to init
-robyn_chain <- function(json_file) {
-  json_data <- robyn_read(json_file, quiet = TRUE)
+dryad_chain <- function(json_file) {
+  json_data <- dryad_read(json_file, quiet = TRUE)
   ids <- c(json_data$InputCollect$refreshChain, json_data$ExportedModel$select_model)
   plot_folder <- json_data$ExportedModel$plot_folder
   temp <- stringr::str_split(plot_folder, "/")[[1]]
@@ -271,19 +271,19 @@ robyn_chain <- function(json_file) {
     if (i == length(chain)) {
       json_new <- json_data
     } else {
-      file <- paste0("RobynModel-", json_new$InputCollect$refreshSourceID, ".json")
+      file <- paste0("dryadModel-", json_new$InputCollect$refreshSourceID, ".json")
       filename <- paste(c(base_dir, chain[1:i], file), collapse = "/")
-      json_new <- robyn_read(filename, quiet = TRUE)
+      json_new <- dryad_read(filename, quiet = TRUE)
     }
     chainData[[json_new$ExportedModel$select_model]] <- json_new
   }
   chainData <- chainData[rev(seq_along(chain))]
   dirs <- unlist(lapply(chainData, function(x) x$ExportedModel$plot_folder))
-  json_files <- paste0(dirs, "RobynModel-", names(dirs), ".json")
+  json_files <- paste0(dirs, "dryadModel-", names(dirs), ".json")
   attr(chainData, "json_files") <- json_files
   attr(chainData, "chain") <- ids # names(chainData)
   if (length(ids) != length(names(chainData))) {
-    warning("Can't replicate chain-like results if you don't follow Robyn's chain structure")
+    warning("Can't replicate chain-like results if you don't follow dryad's chain structure")
   }
   return(invisible(chainData))
 }
