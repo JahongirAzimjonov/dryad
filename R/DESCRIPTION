@@ -8,25 +8,34 @@ Description: Semi-Automated Marketing Mix Modeling (MMM)
 Depends:
     R (>= 4.0.0)
 Imports:
-    doParallel,
-    readxl,
-    doRNG,
-    dplyr,
-    foreach,
-    ggplot2,
-    ggridges,
-    glmnet,
-    jsonlite,
-    lares,
-    lubridate,
-    minpack.lm,
-    nloptr,
-    patchwork,
-    prophet,
-    reticulate,
-    rPref,
-    stringr,
-    tidyr
+ car
+,doParallel
+,doRNG
+,dplyr
+,fastmatrix
+,foreach
+,genridge
+,ggplot2
+,ggpubr
+,ggridges
+,glmnet
+,jsonlite
+,lares
+,lubridate
+,minpack.lm
+,nloptr
+,nortest
+,openxlsx
+,patchwork
+,prophet
+,purrr
+,readxl
+,reticulate
+,rPref
+,RTransferEntropy
+,stringr
+,tidyr
+,tseries
 Suggests:
     shiny
 Config/reticulate:
