@@ -1,7 +1,7 @@
 devtools::load_all()
 
-# debug robyn_input
-args(robyn_inputs)
+# debug dryad_input
+args(dryad_inputs)
 dt_input = dt_simulated_weekly
 dt_holidays = dt_prophet_holidays
 date_var = "DATE"
@@ -31,8 +31,8 @@ json_file = NULL
 InputCollect = NULL
 #hyperparameters = NULL
 
-## debug robyn_run
-args(robyn_run)
+## debug dryad_run
+args(dryad_run)
 calibration_constraint = 0.1
 lambda_control = 1
 refresh = FALSE
@@ -48,8 +48,8 @@ intercept_sign = "non_negative"
 nevergrad_algo = "TwoPointsDE"
 json_file = NULL
 
-## debug robyn_train
-args(robyn_train)
+## debug dryad_train
+args(dryad_train)
 #hyper_collect
 add_penalty_factor = FALSE
 dt_hyper_fixed = NULL
@@ -59,8 +59,8 @@ seed = 123
 quiet = FALSE
 
 
-## debug robyn_mmm
-args(robyn_mmm)
+## debug dryad_mmm
+args(dryad_mmm)
 #InputCollect
 #hyper_collect
 add_penalty_factor = FALSE
@@ -75,7 +75,7 @@ quiet = FALSE
 coefs = mod_out$coefs
 y_pred = mod_out$y_pred
 
-## debug robyn_calibrate
+## debug dryad_calibrate
 # calibration_input = calibration_input
 df_raw = dt_mod
 #hypParamSam = hypParamSam
@@ -88,13 +88,13 @@ xDecompVec = decompCollect$xDecompVec
 coefs = decompCollect$coefsOutCat
 
 
-## debug robyn_outputs
-args(robyn_outputs)
+## debug dryad_outputs
+args(dryad_outputs)
 #InputCollect
 #OutputModels
 pareto_fronts = "auto"
 calibration_constraint = 0.1
-plot_folder = robyn_object
+plot_folder = dryad_object
 plot_folder_sub = NULL
 plot_pareto = TRUE
 csv_out = "pareto"
@@ -104,8 +104,8 @@ ui = FALSE
 export = TRUE
 quiet = FALSE
 
-## debug robyn_pareto
-args(robyn_pareto)
+## debug dryad_pareto
+args(dryad_pareto)
 
 #InputCollect
 #OutputModels
@@ -113,7 +113,7 @@ pareto_fronts = "auto"
 calibration_constraint = 0.1
 quiet = FALSE
 
-## debug robyn_clusters
+## debug dryad_clusters
 input = OutputCollect
 dep_var_type = InputCollect$dep_var_type
 all_media = NULL
@@ -124,9 +124,9 @@ dim_red = "PCA"
 quiet = FALSE
 export = TRUE
 
-## debug robyn_response
-args(robyn_response)
-robyn_object = NULL
+## debug dryad_response
+args(dryad_response)
+dryad_object = NULL
 select_build = NULL
 media_metric = decompSpendDistPar$rn[4]
 select_model = decompSpendDistPar[4, solID]
@@ -135,11 +135,11 @@ dt_hyppar = resultHypParamPar
 dt_coef = xDecompAggPar
 
 
-## debug robyn_refresh
-args(robyn_refresh)
-robyn_object = NULL
+## debug dryad_refresh
+args(dryad_refresh)
+dryad_object = NULL
 # json_file
-# robyn_object
+# dryad_object
 dt_input = dt_simulated_weekly
 dt_holidays = dt_prophet_holidays
 refresh_steps = 3
@@ -154,12 +154,12 @@ export = TRUE
 
 
 
-## debug robyn_allocator
-args(robyn_allocator)
+## debug dryad_allocator
+args(dryad_allocator)
 # InputCollect = NULL
 # OutputCollect = NULL
 # select_model = NULL
-robyn_object = NULL
+dryad_object = NULL
 select_build = NULL
 optim_algo = "SLSQP_AUGLAG"
 scenario = "max_historical_response"
@@ -186,7 +186,7 @@ type = "cdf"
 scenario = "max_historical_response"
 channel_constr_low = c(0.7, 0.7, 0.7, 0.7, 0.7)
 channel_constr_up = c(1.2, 1.5, 1.5, 1.5, 1.5)
-robyn_object = NULL
+dryad_object = NULL
 select_build = NULL
 optim_algo = "SLSQP_AUGLAG"
 scenario = "max_historical_response"
@@ -196,9 +196,9 @@ maxeval = 100000
 constr_mode = "eq"
 ui = FALSE
 
-## debug robyn_refresh
-args(robyn_refresh)
-#robyn_object
+## debug dryad_refresh
+args(dryad_refresh)
+#dryad_object
 plot_folder_sub = NULL
 dt_input = dt_simulated_weekly
 dt_holidays = dt_prophet_holidays
@@ -208,8 +208,8 @@ refresh_iters = 1000
 refresh_trials = 1
 plot_pareto = TRUE
 
-## debug robyn_clusters
-args(robyn_clusters)
+## debug dryad_clusters
+args(dryad_clusters)
 input = OutputCollect
 all_media = NULL
 k = "auto"
