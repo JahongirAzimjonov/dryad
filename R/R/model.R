@@ -4,21 +4,21 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Robyn Modelling Function
+#' dryad Modelling Function
 #'
-#' \code{robyn_run()} consumes \code{robyn_input()} outputs,
-#' runs \code{robyn_mmm()}, and collects all modeling results.
+#' \code{dryad_run()} consumes \code{dryad_input()} outputs,
+#' runs \code{dryad_mmm()}, and collects all modeling results.
 #'
-#' @inheritParams robyn_allocator
-#' @inheritParams robyn_outputs
-#' @inheritParams robyn_inputs
+#' @inheritParams dryad_allocator
+#' @inheritParams dryad_outputs
+#' @inheritParams dryad_inputs
 #' @param dt_hyper_fixed data.frame. Only provide when loading old model results.
 #' It consumes hyperparameters from saved csv \code{pareto_hyperparameters.csv}.
 #' @param add_penalty_factor Boolean. Add penalty factor hyperparameters to
 #' glmnet's penalty.factor to be optimized by nevergrad. Use with caution, because
 #' this feature might add too much hyperparameter space and probably requires
 #' more iterations to converge.
-#' @param refresh Boolean. Set to \code{TRUE} when used in \code{robyn_refresh()}.
+#' @param refresh Boolean. Set to \code{TRUE} when used in \code{dryad_refresh()}.
 #' @param cores Integer. Default to \code{parallel::detectCores() - 1} (all cores
 #' except one). Set to 1 if you want to turn parallel computing off.
 #' @param iterations Integer. Recommended 2000 for default when using
@@ -30,19 +30,19 @@
 #' "DiscreteOnePlusOne", "PortfolioDiscreteOnePlusOne", "NaiveTBPSA",
 #' "cGA", "RandomSearch")}.
 #' @param intercept_sign Character. Choose one of "non_negative" (default) or
-#' "unconstrained". By default, if intercept is negative, Robyn will drop intercept
+#' "unconstrained". By default, if intercept is negative, dryad will drop intercept
 #' and refit the model. Consider changing intercept_sign to "unconstrained" when
 #' there are \code{context_vars} with large positive values.
 #' @param seed Integer. For reproducible results when running nevergrad.
-#' @param outputs Boolean. Process results with \code{robyn_outputs()}?
+#' @param outputs Boolean. Process results with \code{dryad_outputs()}?
 #' @param lambda_control Deprecated in v3.6.0.
-#' @param ... Additional parameters passed to \code{robyn_outputs()}.
-#' @return List. Class: \code{robyn_models}. Contains the results of all trials
+#' @param ... Additional parameters passed to \code{dryad_outputs()}.
+#' @return List. Class: \code{dryad_models}. Contains the results of all trials
 #' and iterations modeled.
 #' @examples
 #' \dontrun{
 #' # Having InputCollect results
-#' OutputCollect <- robyn_run(
+#' OutputCollect <- dryad_run(
 #'   InputCollect = InputCollect,
 #'   cores = 2,
 #'   iterations = 200,
@@ -50,9 +50,9 @@
 #'   outputs = FALSE
 #' )
 #' }
-#' @return List. Contains all trained models. Class: \code{robyn_models}.
+#' @return List. Contains all trained models. Class: \code{dryad_models}.
 #' @export
-robyn_run <- function(InputCollect = NULL,
+dryad_run <- function(InputCollect = NULL,
                       dt_hyper_fixed = NULL,
                       json_file = NULL,
                       add_penalty_factor = FALSE,
@@ -71,9 +71,9 @@ robyn_run <- function(InputCollect = NULL,
 
   ### Use previously exported model using json_file
   if (!is.null(json_file)) {
-    # InputCollect <- robyn_inputs(json_file = json_file, dt_input = dt_input, dt_holidays = dt_holidays)
-    if (is.null(InputCollect)) InputCollect <- robyn_inputs(json_file = json_file, ...)
-    json <- robyn_read(json_file, step = 2, quiet = TRUE)
+    # InputCollect <- dryad_inputs(json_file = json_file, dt_input = dt_input, dt_holidays = dt_holidays)
+    if (is.null(InputCollect)) InputCollect <- dryad_inputs(json_file = json_file, ...)
+    json <- dryad_read(json_file, step = 2, quiet = TRUE)
     dt_hyper_fixed <- json$ExportedModel$hyper_values
     for (i in seq_along(json$ExportedModel)) {
       assign(names(json$ExportedModel)[i], json$ExportedModel[[i]])
@@ -89,10 +89,10 @@ robyn_run <- function(InputCollect = NULL,
   #### Set local environment
 
   if (!"hyperparameters" %in% names(InputCollect) || is.null(InputCollect$hyperparameters)) {
-    stop("Must provide 'hyperparameters' in robyn_inputs()'s output first")
+    stop("Must provide 'hyperparameters' in dryad_inputs()'s output first")
   }
 
-  # Check and warn on legacy inputs (using InputCollect params as robyn_run() inputs)
+  # Check and warn on legacy inputs (using InputCollect params as dryad_run() inputs)
   InputCollect <- check_legacy_input(InputCollect, cores, iterations, trials, intercept_sign, nevergrad_algo)
   # Overwrite values imported from InputCollect
   legacyValues <- InputCollect[LEGACY_PARAMS]
@@ -128,9 +128,9 @@ robyn_run <- function(InputCollect = NULL,
   InputCollect$hyper_updated <- hyper_collect$hyper_list_all
 
   #####################################
-  #### Run robyn_mmm() for each trial
+  #### Run dryad_mmm() for each trial
 
-  OutputModels <- robyn_train(
+  OutputModels <- dryad_train(
     InputCollect, hyper_collect,
     cores, iterations, trials, intercept_sign, nevergrad_algo,
     dt_hyper_fixed = dt_hyper_fixed,
@@ -157,15 +157,15 @@ robyn_run <- function(InputCollect = NULL,
     output <- OutputModels
   } else if (!hyper_collect$all_fixed) {
     # Direct output & not all fixed hyppar, including refresh mode
-    output <- robyn_outputs(InputCollect, OutputModels, refresh = refresh, ...)
+    output <- dryad_outputs(InputCollect, OutputModels, refresh = refresh, ...)
   } else {
     # Direct output & all fixed hyppar, thus no cluster
-    output <- robyn_outputs(InputCollect, OutputModels, clusters = FALSE, ...)
+    output <- dryad_outputs(InputCollect, OutputModels, clusters = FALSE, ...)
   }
 
   # Check convergence when more than 1 iteration
   if (!hyper_collect$all_fixed) {
-    output[["convergence"]] <- robyn_converge(OutputModels, ...)
+    output[["convergence"]] <- dryad_converge(OutputModels, ...)
   } else {
     output[["selectID"]] <- OutputModels$trial1$resultCollect$resultHypParam$solID
     if (!quiet) message("Successfully recreated model ID: ", output$selectID)
@@ -179,15 +179,15 @@ robyn_run <- function(InputCollect = NULL,
   attr(output, "runTime") <- round(difftime(Sys.time(), t0, units = "mins"), 2)
   if (!quiet && iterations > 1) message(paste("Total run time:", attr(output, "runTime"), "mins"))
 
-  class(output) <- unique(c("robyn_models", class(output)))
+  class(output) <- unique(c("dryad_models", class(output)))
   return(output)
 }
 
-#' @rdname robyn_run
-#' @aliases robyn_run
-#' @param x \code{robyn_models()} output.
+#' @rdname dryad_run
+#' @aliases dryad_run
+#' @param x \code{dryad_models()} output.
 #' @export
-print.robyn_models <- function(x, ...) {
+print.dryad_models <- function(x, ...) {
   is_fixed <- all(lapply(x$hyper_updated, length) == 1)
   print(glued(
     "
@@ -217,7 +217,7 @@ print.robyn_models <- function(x, ...) {
     hypers = flatten_hyps(x$hyper_updated)
   ))
 
-  if ("robyn_outputs" %in% class(x)) {
+  if ("dryad_outputs" %in% class(x)) {
     print(glued(
       "
 Plot Folder: {x$plot_folder}
@@ -239,17 +239,17 @@ Pareto-front ({x$pareto_fronts}) All solutions ({nSols}): {paste(x$allSolutions,
 }
 
 ####################################################################
-#' Train Robyn Models
+#' Train dryad Models
 #'
-#' \code{robyn_train()} consumes output from \code{robyn_input()}
-#' and runs the \code{robyn_mmm()} on each trial.
+#' \code{dryad_train()} consumes output from \code{dryad_input()}
+#' and runs the \code{dryad_mmm()} on each trial.
 #'
-#' @inheritParams robyn_run
+#' @inheritParams dryad_run
 #' @param hyper_collect List. Containing hyperparameter bounds. Defaults to
 #' \code{InputCollect$hyperparameters}.
-#' @return List. Iteration results to include in \code{robyn_run()} results.
+#' @return List. Iteration results to include in \code{dryad_run()} results.
 #' @export
-robyn_train <- function(InputCollect, hyper_collect,
+dryad_train <- function(InputCollect, hyper_collect,
                         cores, iterations, trials,
                         intercept_sign, nevergrad_algo,
                         dt_hyper_fixed = NULL,
@@ -260,7 +260,7 @@ robyn_train <- function(InputCollect, hyper_collect,
 
   if (hyper_fixed) {
     OutputModels <- list()
-    OutputModels[[1]] <- robyn_mmm(
+    OutputModels[[1]] <- dryad_mmm(
       InputCollect = InputCollect,
       hyper_collect = hyper_collect,
       iterations = iterations,
@@ -283,7 +283,7 @@ robyn_train <- function(InputCollect, hyper_collect,
       }
     }
   } else {
-    ## Run robyn_mmm() for each trial if hyperparameters are not all fixed
+    ## Run dryad_mmm() for each trial if hyperparameters are not all fixed
     check_init_msg(InputCollect, cores)
     if (!quiet) {
       message(paste(
@@ -298,7 +298,7 @@ robyn_train <- function(InputCollect, hyper_collect,
 
     for (ngt in 1:trials) { # ngt = 1
       if (!quiet) message(paste("  Running trial", ngt, "of", trials))
-      model_output <- robyn_mmm(
+      model_output <- dryad_mmm(
         InputCollect = InputCollect,
         hyper_collect = hyper_collect,
         iterations = iterations,
@@ -322,7 +322,7 @@ robyn_train <- function(InputCollect, hyper_collect,
             "This trial contains", num_coef0_mod, "iterations with all media coefficient = 0.",
             "Please reconsider your media variable choice if the pareto choices are unreasonable.",
             "\n   Recommendations:",
-            "\n1. Increase hyperparameter ranges for 0-coef channels to give Robyn more freedom",
+            "\n1. Increase hyperparameter ranges for 0-coef channels to give dryad more freedom",
             "\n2. Split media into sub-channels, and/or aggregate similar channels, and/or introduce other media",
             "\n3. Increase trials to get more samples"
           ))
@@ -340,20 +340,20 @@ robyn_train <- function(InputCollect, hyper_collect,
 ####################################################################
 #' Core MMM Function
 #'
-#' \code{robyn_mmm()} function activates Nevergrad to generate samples of
+#' \code{dryad_mmm()} function activates Nevergrad to generate samples of
 #' hyperparameters, conducts media transformation within each loop, fits the
 #' Ridge regression, calibrates the model optionally, decomposes responses
-#' and collects the result. It's an inner function within \code{robyn_run()}.
+#' and collects the result. It's an inner function within \code{dryad_run()}.
 #'
-#' @inheritParams robyn_run
-#' @inheritParams robyn_allocator
+#' @inheritParams dryad_run
+#' @inheritParams dryad_allocator
 #' @param hyper_collect List. Containing hyperparameter bounds. Defaults to
 #' \code{InputCollect$hyperparameters}.
 #' @param iterations Integer. Number of iterations to run.
 #' @param trial Integer. Which trial are we running? Used to ID each model.
 #' @return List. MMM results with hyperparameters values.
 #' @export
-robyn_mmm <- function(InputCollect,
+dryad_mmm <- function(InputCollect,
                       hyper_collect,
                       iterations,
                       cores,
@@ -397,7 +397,7 @@ robyn_mmm <- function(InputCollect,
   #### Setup environment
 
   if (is.null(InputCollect$dt_mod)) {
-    stop("Run InputCollect$dt_mod <- robyn_engineering() first to get the dt_mod")
+    stop("Run InputCollect$dt_mod <- dryad_engineering() first to get the dt_mod")
   }
 
   ## Get environment for parallel backend
@@ -538,7 +538,7 @@ robyn_mmm <- function(InputCollect,
           }
 
           # Must remain within this function for it to work
-          robyn_iterations <- function(i, ...) { # i=1
+          dryad_iterations <- function(i, ...) { # i=1
             t1 <- Sys.time()
             #### Get hyperparameter sample
             hypParamSam <- hypParamSamNG[i, ]
@@ -727,7 +727,7 @@ robyn_mmm <- function(InputCollect,
             #####################################
             #### MAPE: Calibration error
             if (!is.null(calibration_input)) {
-              liftCollect <- robyn_calibrate(
+              liftCollect <- dryad_calibrate(
                 calibration_input = calibration_input,
                 df_raw = dt_mod,
                 hypParamSam = hypParamSam,
@@ -855,7 +855,7 @@ robyn_mmm <- function(InputCollect,
           decomp.rssd.collect <- NULL
           best_mape <- Inf
           if (cores == 1) {
-            doparCollect <- lapply(1:iterPar, robyn_iterations)
+            doparCollect <- lapply(1:iterPar, dryad_iterations)
           } else {
             # Create cluster to minimize overhead for parallel back-end registering
             if (check_parallel() && !hyper_fixed) {
@@ -864,7 +864,7 @@ robyn_mmm <- function(InputCollect,
               registerDoSEQ()
             }
             suppressPackageStartupMessages(
-              doparCollect <- foreach(i = 1:iterPar) %dorng% robyn_iterations(i)
+              doparCollect <- foreach(i = 1:iterPar) %dorng% dryad_iterations(i)
             )
           }
 
@@ -897,7 +897,7 @@ robyn_mmm <- function(InputCollect,
     },
     error = function(err) {
       if (!is.null(resultCollectNG)) {
-        msg <- "Error while running robyn_mmm(); providing PARTIAL results"
+        msg <- "Error while running dryad_mmm(); providing PARTIAL results"
         warning(msg)
         message(paste(msg, err, sep = "\n"))
         sysTimeDopar <- rep(Sys.time() - t0, 3)
