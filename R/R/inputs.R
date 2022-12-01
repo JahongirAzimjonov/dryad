@@ -6,7 +6,7 @@
 ####################################################################
 #' Input Data Check & Transformation
 #'
-#' \code{robyn_inputs()} is the function to input all model parameters and
+#' \code{dryad_inputs()} is the function to input all model parameters and
 #' check input correctness for the initial model build. It includes the
 #' engineering process results that conducts trend, season,
 #' holiday & weekday decomposition using Facebook's time-series forecasting
@@ -19,7 +19,7 @@
 #'    that are considered ground truth to calibrate MMM. Usual experiment
 #'    types are people-based (e.g. Facebook conversion lift) and
 #'    geo-based (e.g. Facebook GeoLift).
-#'    \item Currently, Robyn only accepts point-estimate as calibration
+#'    \item Currently, dryad only accepts point-estimate as calibration
 #'    input. For example, if 10k$ spend is tested against a hold-out
 #'    for channel A, then input the incremental return as point-estimate
 #'    as the example below.
@@ -116,16 +116,16 @@
 #' You can also use experimental results from multiple channels; to do so,
 #' provide concatenated channel value, i.e. "channel_A+channel_B".
 #' Check "Guide for calibration source" section.
-#' @param InputCollect Default to NULL. \code{robyn_inputs}'s output when
+#' @param InputCollect Default to NULL. \code{dryad_inputs}'s output when
 #' \code{hyperparameters} are not yet set.
 #' @param json_file Character. JSON file to import previously exported inputs
 #' (needs \code{dt_input} and \code{dt_holidays} parameters too).
 #' @param ... Additional parameters passed to \code{prophet} functions.
 #' @examples
 #' # Using dummy simulated data
-#' InputCollect <- robyn_inputs(
-#'   dt_input = Robyn::dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
+#' InputCollect <- dryad_inputs(
+#'   dt_input = dryad::dt_simulated_weekly,
+#'   dt_holidays = dryad::dt_prophet_holidays,
 #'   date_var = "DATE",
 #'   dep_var = "revenue",
 #'   dep_var_type = "revenue",
@@ -145,12 +145,12 @@
 #' )
 #' print(InputCollect)
 #' @return List. Contains all input parameters and modified results
-#' using \code{Robyn:::robyn_engineering()}. This list is ready to be
-#' used on other functions like \code{robyn_run()} and \code{print()}.
-#' Class: \code{robyn_inputs}.
+#' using \code{dryad:::dryad_engineering()}. This list is ready to be
+#' used on other functions like \code{dryad_run()} and \code{print()}.
+#' Class: \code{dryad_inputs}.
 #' @export
-robyn_inputs <- function(dt_input = NULL,
-                         dt_holidays = Robyn::dt_prophet_holidays,
+dryad_inputs <- function(dt_input = NULL,
+                         dt_holidays = dryad::dt_prophet_holidays,
                          date_var = "auto",
                          dep_var = NULL,
                          dep_var_type = NULL,
@@ -173,16 +173,16 @@ robyn_inputs <- function(dt_input = NULL,
                          json_file = NULL,
                          InputCollect = NULL,
                          ...) {
-  ### Use case 3: running robyn_inputs() with json_file
+  ### Use case 3: running dryad_inputs() with json_file
   if (!is.null(json_file)) {
-    json <- robyn_read(json_file, step = 1, ...)
+    json <- dryad_read(json_file, step = 1, ...)
     if (is.null(dt_input) || is.null(dt_holidays)) stop("Provide 'dt_input' and 'dt_holidays'")
     for (i in seq_along(json$InputCollect)) {
       assign(names(json$InputCollect)[i], json$InputCollect[[i]])
     }
   }
 
-  ### Use case 1: running robyn_inputs() for the first time
+  ### Use case 1: running dryad_inputs() for the first time
   if (is.null(InputCollect)) {
     dt_input <- as_tibble(dt_input)
     # if (!is.null(dt_holidays)) dt_holidays <- as_tibble(dt_holidays) %>%
@@ -320,11 +320,11 @@ robyn_inputs <- function(dt_input = NULL,
 
     if (!is.null(hyperparameters)) {
       ### Conditional output 1.2
-      ## Running robyn_inputs() for the 1st time & 'hyperparameters' provided --> run robyn_engineering()
-      InputCollect <- robyn_engineering(InputCollect, ...)
+      ## Running dryad_inputs() for the 1st time & 'hyperparameters' provided --> run dryad_engineering()
+      InputCollect <- dryad_engineering(InputCollect, ...)
     }
   } else {
-    ### Use case 2: adding 'hyperparameters' and/or 'calibration_input' using robyn_inputs()
+    ### Use case 2: adding 'hyperparameters' and/or 'calibration_input' using dryad_inputs()
     # Check for legacy (deprecated) inputs
     check_legacy_input(InputCollect)
 
@@ -345,14 +345,14 @@ robyn_inputs <- function(dt_input = NULL,
     if (!is.null(calibration_input)) InputCollect$calibration_input <- calibration_input
     if (!is.null(hyperparameters)) InputCollect$hyperparameters <- hyperparameters
     if (is.null(InputCollect$hyperparameters) && is.null(hyperparameters)) {
-      stop("Must provide hyperparameters in robyn_inputs()")
+      stop("Must provide hyperparameters in dryad_inputs()")
     } else {
       ### Conditional output 2.1
-      ## 'hyperparameters' provided --> run robyn_engineering()
+      ## 'hyperparameters' provided --> run dryad_engineering()
       ## Update & check hyperparameters
       if (is.null(InputCollect$hyperparameters)) InputCollect$hyperparameters <- hyperparameters
       check_hyperparameters(InputCollect$hyperparameters, InputCollect$adstock, InputCollect$all_media)
-      InputCollect <- robyn_engineering(InputCollect, ...)
+      InputCollect <- dryad_engineering(InputCollect, ...)
     }
   }
 
@@ -361,26 +361,26 @@ robyn_inputs <- function(dt_input = NULL,
     InputCollect <- append(InputCollect, json$InputCollect[pending])
   }
 
-  # Save R and Robyn's versions
+  # Save R and dryad's versions
   if (TRUE) {
-    ver <- as.character(utils::packageVersion("Robyn"))
+    ver <- as.character(utils::packageVersion("dryad"))
     rver <- utils::sessionInfo()$R.version
-    origin <- ifelse(is.null(utils::packageDescription("Robyn")$Repository), "dev", "stable")
+    origin <- ifelse(is.null(utils::packageDescription("dryad")$Repository), "dev", "stable")
     InputCollect$version <- sprintf(
-      "Robyn (%s) v%s [R-%s.%s]",
+      "dryad (%s) v%s [R-%s.%s]",
       origin, ver, rver$major, rver$minor
     )
   }
 
-  class(InputCollect) <- c("robyn_inputs", class(InputCollect))
+  class(InputCollect) <- c("dryad_inputs", class(InputCollect))
   return(InputCollect)
 }
 
-#' @param x \code{robyn_inputs()} output.
-#' @rdname robyn_inputs
-#' @aliases robyn_inputs
+#' @param x \code{dryad_inputs()} output.
+#' @rdname dryad_inputs
+#' @aliases dryad_inputs
 #' @export
-print.robyn_inputs <- function(x, ...) {
+print.dryad_inputs <- function(x, ...) {
   mod_vars <- paste(setdiff(names(x$dt_mod), c("ds", "dep_var")), collapse = ", ")
   print(glued(
     "
@@ -432,7 +432,7 @@ Adstock: {x$adstock}
 #' Get correct hyperparameter names
 #'
 #' Output all hyperparameter names and help specifying the list of
-#' hyperparameters that is inserted into \code{robyn_inputs(hyperparameters = ...)}
+#' hyperparameters that is inserted into \code{dryad_inputs(hyperparameters = ...)}
 #'
 #' @section Guide to setup hyperparameters:
 #'  \enumerate{
@@ -547,15 +547,15 @@ hyper_limits <- function() {
 ####################################################################
 # Apply prophet decomposition and spend exposure transformation
 #
-# \code{robyn_engineering()} is included in the \code{robyn_inputs()}
+# \code{dryad_engineering()} is included in the \code{dryad_inputs()}
 # function and will only run after all the condition checks are passed.
 # It applies the decomposition of trend, season, holiday and weekday
 # from \code{prophet} and builds the nonlinear fitting model when
 # using non-spend variables in \code{paid_media_vars}, for example
 # impressions for Facebook variables.
 #
-# @rdname robyn_inputs
-robyn_engineering <- function(x, quiet = FALSE, ...) {
+# @rdname dryad_inputs
+dryad_engineering <- function(x, quiet = FALSE, ...) {
   if (!quiet) message(">> Running feature engineering...")
   InputCollect <- x
   check_InputCollect(InputCollect)
@@ -699,16 +699,16 @@ robyn_engineering <- function(x, quiet = FALSE, ...) {
     } else {
       custom_params <- list(...)
     } # custom_params <- list()
-    robyn_args <- setdiff(
+    dryad_args <- setdiff(
       unique(c(
-        names(as.list(args(robyn_run))),
-        names(as.list(args(robyn_outputs))),
-        names(as.list(args(robyn_inputs))),
-        names(as.list(args(robyn_refresh)))
+        names(as.list(args(dryad_run))),
+        names(as.list(args(dryad_outputs))),
+        names(as.list(args(dryad_inputs))),
+        names(as.list(args(dryad_refresh)))
       )),
       c("", "...")
     )
-    prophet_custom_args <- setdiff(names(custom_params), robyn_args)
+    prophet_custom_args <- setdiff(names(custom_params), dryad_args)
     # if (length(prophet_custom_args) > 0) {
     #   message(paste("Using custom prophet parameters:", paste(prophet_custom_args, collapse = ", ")))
     # }
@@ -747,11 +747,11 @@ robyn_engineering <- function(x, quiet = FALSE, ...) {
 ####################################################################
 #' Conduct prophet decomposition
 #'
-#' When \code{prophet_vars} in \code{robyn_inputs()} is specified, this
+#' When \code{prophet_vars} in \code{dryad_inputs()} is specified, this
 #' function decomposes trend, season, holiday and weekday from the
 #' dependent variable.
 #'
-#' @inheritParams robyn_inputs
+#' @inheritParams dryad_inputs
 #' @param dt_transform A data.frame with all model features.
 #' Must contain \code{ds} column for time variable values and
 #' \code{dep_var} column for dependent variable values.
@@ -834,7 +834,7 @@ prophet_decomp <- function(dt_transform, dt_holidays,
 ####################################################################
 #' Fit a nonlinear model for media spend and exposure
 #'
-#' This function is called in \code{robyn_engineering()}. It uses
+#' This function is called in \code{dryad_engineering()}. It uses
 #' the Michaelis-Menten function to fit the nonlinear model. Fallback
 #' model is the simple linear model \code{lm()} in case the nonlinear
 #' model is fitting worse. A bad fit here might result in unreasonable
@@ -923,8 +923,8 @@ fit_spend_exposure <- function(dt_spendModInput, mediaCostFactor, paid_media_var
 ####################################################################
 #' Detect and set date variable interval
 #'
-#' Robyn only accepts daily, weekly and monthly data. This function
-#' is only called in \code{robyn_engineering()}.
+#' dryad only accepts daily, weekly and monthly data. This function
+#' is only called in \code{dryad_engineering()}.
 #'
 #' @param dt_transform A data.frame. Transformed input data.
 #' @param dt_holidays A data.frame. Raw input holiday data.
