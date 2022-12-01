@@ -16,8 +16,8 @@ get_rsq <- function(true, predicted, p = NULL, df.int = NULL) {
   return(rsq)
 }
 
-# Robyn colors
-robyn_palette <- function() {
+# dryad colors
+dryad_palette <- function() {
   pal <- c(
 "#69767c", "#b6d957", "#5cbae5", "#fac364", "#9ea8ad", "#1b7eac",
 "#759422", "#dd8e07", "#abdbf2", "#d7eaa2", "#fde5bd", "#d5dadc"
@@ -29,8 +29,8 @@ robyn_palette <- function() {
   )
 }
 # lares::plot_palette(
-#   fill = robyn_palette()$fill, colour = robyn_palette()$colour,
-#   limit = length(unique(robyn_palette()$fill)))
+#   fill = dryad_palette()$fill, colour = dryad_palette()$colour,
+#   limit = length(unique(dryad_palette()$fill)))
 
 flatten_hyps <- function(x) {
   if (is.null(x)) {
@@ -50,7 +50,7 @@ flatten_hyps <- function(x) {
 #' or \code{utils::install.packages}, depending on \code{dev} parameter.
 #' @return Invisible \code{NULL}.
 #' @export
-robyn_update <- function(dev = TRUE, ...) {
+dryad_update <- function(dev = TRUE, ...) {
   if (dev) {
     try_require("remotes")
     # options(timeout = 400)
