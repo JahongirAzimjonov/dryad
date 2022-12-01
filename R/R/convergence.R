@@ -6,7 +6,7 @@
 ####################################################################
 #' Check Models Convergence
 #'
-#' \code{robyn_converge()} consumes \code{robyn_run()} outputs
+#' \code{dryad_converge()} consumes \code{dryad_run()} outputs
 #' and calculate convergence status and builds convergence plots.
 #' Convergence is calculated by default using the following criteria
 #' (having kept the default parameters: sd_qtref = 3 and med_lowb = 2):
@@ -19,7 +19,7 @@
 #' }
 #' Both mentioned criteria have to be satisfied to consider MOO convergence.
 #'
-#' @param OutputModels List. Output from \code{robyn_run()}.
+#' @param OutputModels List. Output from \code{dryad_run()}.
 #' @param n_cuts Integer. Default to 20 (5\% cuts each).
 #' @param sd_qtref Integer. Reference quantile of the error convergence rule
 #' for standard deviation (Criteria #1). Defaults to 3.
@@ -29,7 +29,7 @@
 #' @examples
 #' \dontrun{
 #' # Having OutputModels results
-#' robyn_converge(
+#' dryad_converge(
 #'   OutputModels,
 #'   n_cuts = 10,
 #'   sd_qtref = 3,
@@ -38,7 +38,7 @@
 #' }
 #' @return List. Plots and MOO convergence results.
 #' @export
-robyn_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2, ...) {
+dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2, ...) {
   stopifnot(n_cuts > min(c(sd_qtref, med_lowb)) + 1)
 
   # Gather all trials
