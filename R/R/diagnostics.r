@@ -625,7 +625,7 @@ run_diagnostics <- function(mydata){
   my_paid_media_spends <- InputCollect$paid_media_spends
   # my_paid_media_spends
   # c("tv_S", "ooh_S", "print_S", "facebook_S", "search_S") # enter paid media spends here
-  my_paid_media_impressions <- <- InputCollect$paid_media_vars
+  my_paid_media_impressions <- InputCollect$paid_media_vars
   my_context_vars <- InputCollect$context_vars
   # my_context_vars
   # c("competitor_sales_B", "events")
