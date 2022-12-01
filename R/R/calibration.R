@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-robyn_calibrate <- function(calibration_input,
+dryad_calibrate <- function(calibration_input,
                             df_raw, # df_raw = InputCollect$dt_mod
                             dayInterval, # dayInterval = InputCollect$dayInterval
                             dt_modAdstocked, # dt_modAdstocked = InputCollect$dt_mod (?)
