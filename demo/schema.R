@@ -18,12 +18,12 @@
 # $ decomp.rssd : Numeric. DECOMP.RSSE decomposition root-sum of squared error. Main objective function.
 # $ rsq_train : Numeric. Adjusted R squared of training data.
 # $ lambda : Numeric. The L2 regularization parameter.
-# $ iterPar : Integer. Parallel iteration in inner loop of robyn_mmm that equals number of cores.
+# $ iterPar : Integer. Parallel iteration in inner loop of dryad_mmm that equals number of cores.
 # $ iterNG : Integer. Pseudo-calc: iterNG = round(total_iteration / iterPar)
 # $ df.int : Integer. Degree of freedom for intercept that takes on 0 or 1.
 # $ trial : Integer. Trial of current model.
 # $ iterations : Integer. Iteration position of current model and current trial.
-# $ robynPareto : Integer. Position of pareto front of current model.
+# $ dryadPareto : Integer. Position of pareto front of current model.
 # $ total_spend : Numeric. Total spend of each paid_media_vars.
 # $ mean_spend : Numeric. Mean spend of non-zero periods of each paid_media_vars.
 # $ spend_share : Numeric. Share of total_spend.
@@ -62,7 +62,7 @@
 # $ iterations	: see schema of pareto_aggregated.csv
 # $ coef0	: Logical. TRUE when current model contains channel with coef == 0
 # $ mape.qt10: Logical. TRUE when the calibration error MAPE.LIFT of current model is among lowest 10% of all iterations.
-# $ robynPareto : see schema of pareto_aggregated.csv
+# $ dryadPareto : see schema of pareto_aggregated.csv
 
 #### pareto_alldecomp_matrix.csv: Time series vectors of predicted response of all variables. Number of column varies depending on input data.
 
@@ -99,7 +99,7 @@
 # $ initResponseUnit : Numeric. Response of initSpendUnit of each channel for the respective time grain.
 # $ initResponseUnitTotal : SNumeric. um of initResponseUnit. Excluded channels don't impact it here because they have 0 response anyway.
 # $ initRoiUnit : Numeric. Equals initResponseUnit / initSpendUnit
-# $ expSpendTotal : Numeric. Total marketing budget for optimal allocation. When scenario = "max_historical_response", it equals histSpendTotal. When scenario = "max_response_expected_spend", it equals to user's input in expected_spend argument in robyn_allocator() function
+# $ expSpendTotal : Numeric. Total marketing budget for optimal allocation. When scenario = "max_historical_response", it equals histSpendTotal. When scenario = "max_response_expected_spend", it equals to user's input in expected_spend argument in dryad_allocator() function
 # $ expSpendUnitTotal : Numeric. Total marketing budget for optimal allocation for the respective time grain. When scenario = "max_historical_response", it equals to initSpendUnitTotal. When scenario = "max_response_expected_spend", it equals to expected_spend / expected_days
 # $ expSpendUnitDelta : Numeric. Equals expSpendUnitTotal / initSpendUnitTotal -1
 # $ optmSpendUnit : Numeric. Optimised spend of each channel for the respective time grain.
