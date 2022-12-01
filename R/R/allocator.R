@@ -6,22 +6,22 @@
 ####################################################################
 #' Budget Allocator
 #'
-#' \code{robyn_allocator()} function returns a new split of media
+#' \code{dryad_allocator()} function returns a new split of media
 #' variable spends that maximizes the total media response.
 #'
-#' @inheritParams robyn_run
-#' @inheritParams robyn_outputs
-#' @param robyn_object Character or List. Path of the \code{Robyn.RDS} object
+#' @inheritParams dryad_run
+#' @inheritParams dryad_outputs
+#' @param dryad_object Character or List. Path of the \code{dryad.RDS} object
 #' that contains all previous modeling information or the imported list.
 #' @param select_build Integer. Default to the latest model build. \code{select_build = 0}
 #' selects the initial model. \code{select_build = 1} selects the first refresh model.
 #' @param InputCollect List. Contains all input parameters for the model.
-#' Required when \code{robyn_object} is not provided.
+#' Required when \code{dryad_object} is not provided.
 #' @param OutputCollect List. Containing all model result.
-#' Required when \code{robyn_object} is not provided.
-#' @param select_model Character. A model \code{SolID}. When \code{robyn_object}
+#' Required when \code{dryad_object} is not provided.
+#' @param select_model Character. A model \code{SolID}. When \code{dryad_object}
 #' is provided, \code{select_model} defaults to the already selected \code{SolID}. When
-#' \code{robyn_object} is not provided, \code{select_model} must be provided with
+#' \code{dryad_object} is not provided, \code{select_model} must be provided with
 #' \code{InputCollect} and \code{OutputCollect}, and must be one of
 #' \code{OutputCollect$allSolutions}.
 #' @param optim_algo Character. Default to \code{"SLSQP_AUGLAG"}, short for "Sequential Least-Squares
@@ -57,7 +57,7 @@
 #' \dontrun{
 #' # Having InputCollect and OutputCollect results
 #' # Set your exported model location
-#' robyn_object <- "~/Desktop/MyRobyn.RDS"
+#' dryad_object <- "~/Desktop/Mydryad.RDS"
 #'
 #' # Check media summary for selected model from the simulated data
 #' select_model <- "3_10_3"
@@ -71,7 +71,7 @@
 #'
 #' # Run allocator with 'InputCollect' and 'OutputCollect'
 #' # with 'scenario = "max_historical_response"'
-#' AllocatorCollect <- robyn_allocator(
+#' AllocatorCollect <- dryad_allocator(
 #'   InputCollect = InputCollect,
 #'   OutputCollect = OutputCollect,
 #'   select_model = select_model,
@@ -80,10 +80,10 @@
 #'   channel_constr_up = c(1.2, 1.5, 1.5, 1.5, 1.5)
 #' )
 #'
-#' # Run allocator with a 'robyn_object' from the second model refresh
+#' # Run allocator with a 'dryad_object' from the second model refresh
 #' # with 'scenario = "max_response_expected_spend"'
-#' AllocatorCollect <- robyn_allocator(
-#'   robyn_object = robyn_object,
+#' AllocatorCollect <- dryad_allocator(
+#'   dryad_object = dryad_object,
 #'   select_build = 2,
 #'   scenario = "max_response_expected_spend",
 #'   channel_constr_low = c(0.7, 0.7, 0.7, 0.7, 0.7),
@@ -94,7 +94,7 @@
 #' }
 #' @return List. Contains optimized allocation results and plots.
 #' @export
-robyn_allocator <- function(robyn_object = NULL,
+dryad_allocator <- function(dryad_object = NULL,
                             select_build = 0,
                             InputCollect = NULL,
                             OutputCollect = NULL,
@@ -119,28 +119,28 @@ robyn_allocator <- function(robyn_object = NULL,
 
   ### Use previously exported model using json_file
   if (!is.null(json_file)) {
-    if (is.null(InputCollect)) InputCollect <- robyn_inputs(json_file = json_file, ...)
+    if (is.null(InputCollect)) InputCollect <- dryad_inputs(json_file = json_file, ...)
     if (is.null(OutputCollect)) {
-      OutputCollect <- robyn_run(
-        json_file = json_file, plot_folder = robyn_object, ...
+      OutputCollect <- dryad_run(
+        json_file = json_file, plot_folder = dryad_object, ...
       )
     }
     if (is.null(select_model)) select_model <- OutputCollect$selectID
   }
 
   ## Collect inputs
-  if (!is.null(robyn_object) && (is.null(InputCollect) && is.null(OutputCollect))) {
-    if ("robyn_exported" %in% class(robyn_object)) {
-      imported <- robyn_object
-      robyn_object <- imported$robyn_object
+  if (!is.null(dryad_object) && (is.null(InputCollect) && is.null(OutputCollect))) {
+    if ("dryad_exported" %in% class(dryad_object)) {
+      imported <- dryad_object
+      dryad_object <- imported$dryad_object
     } else {
-      imported <- robyn_load(robyn_object, select_build, quiet)
+      imported <- dryad_load(dryad_object, select_build, quiet)
     }
     InputCollect <- imported$InputCollect
     OutputCollect <- imported$OutputCollect
     select_model <- imported$select_model
   } else if (any(is.null(InputCollect), is.null(OutputCollect), is.null(select_model))) {
-    stop("When 'robyn_object' is not provided, then InputCollect, OutputCollect, select_model must be provided")
+    stop("When 'dryad_object' is not provided, then InputCollect, OutputCollect, select_model must be provided")
   }
 
   message(paste(">>> Running budget allocator for model ID", select_model, "..."))
@@ -239,9 +239,9 @@ robyn_allocator <- function(robyn_object = NULL,
   noSpendMedia <- histResponseUnitModel <- NULL
   for (i in seq_along(mediaSpendSortedFiltered)) {
     if (histSpendUnit[i] > 0) {
-      val <- robyn_response(
+      val <- dryad_response(
         json_file = json_file,
-        robyn_object = robyn_object,
+        dryad_object = dryad_object,
         select_build = select_build,
         media_metric = mediaSpendSortedFiltered[i],
         select_model = select_model,
@@ -280,7 +280,7 @@ robyn_allocator <- function(robyn_object = NULL,
     expSpendUnitTotal = expSpendUnitTotal
   )
   # So we can implicitly use these values within eval_f()
-  options("ROBYN_TEMP" = eval_list)
+  options("dryad_TEMP" = eval_list)
 
   # eval_f(c(1,1))
   # $objective
@@ -357,7 +357,7 @@ robyn_allocator <- function(robyn_object = NULL,
     optmResponseUnitLift = (-eval_f(nlsMod$solution)[["objective.channel"]] / histResponseUnitModel) - 1
   ) %>%
     mutate(optmResponseUnitTotalLift = (.data$optmResponseUnitTotal / .data$initResponseUnitTotal) - 1)
-  .Options$ROBYN_TEMP <- NULL # Clean auxiliary method
+  .Options$dryad_TEMP <- NULL # Clean auxiliary method
 
   ## Plot allocator results
   plots <- allocation_plots(InputCollect, OutputCollect, dt_optimOut, select_model, scenario, export, quiet)
@@ -383,15 +383,15 @@ robyn_allocator <- function(robyn_object = NULL,
     ui = if (ui) plots else NULL
   )
 
-  class(output) <- c("robyn_allocator", class(output))
+  class(output) <- c("dryad_allocator", class(output))
   return(output)
 }
 
-#' @rdname robyn_allocator
-#' @aliases robyn_allocator
-#' @param x \code{robyn_allocator()} output.
+#' @rdname dryad_allocator
+#' @aliases dryad_allocator
+#' @param x \code{dryad_allocator()} output.
 #' @export
-print.robyn_allocator <- function(x, ...) {
+print.dryad_allocator <- function(x, ...) {
   temp <- x$dt_optimOut[!is.nan(x$dt_optimOut$optmRoiUnit), ]
   print(glued(
     "
@@ -442,15 +442,15 @@ Allocation Summary:
   ))
 }
 
-#' @rdname robyn_allocator
-#' @aliases robyn_allocator
-#' @param x \code{robyn_allocator()} output.
+#' @rdname dryad_allocator
+#' @aliases dryad_allocator
+#' @param x \code{dryad_allocator()} output.
 #' @export
-plot.robyn_allocator <- function(x, ...) plot(x$plots$plots, ...)
+plot.dryad_allocator <- function(x, ...) plot(x$plots$plots, ...)
 
 eval_f <- function(X) {
   # eval_list <- get("eval_list", pos = as.environment(-1))
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("dryad_TEMP")
   # mm_lm_coefs <- eval_list[["mm_lm_coefs"]]
   coefsFiltered <- eval_list[["coefsFiltered"]]
   alphas <- eval_list[["alphas"]]
@@ -561,7 +561,7 @@ eval_f <- function(X) {
 }
 
 eval_g_eq <- function(X) {
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("dryad_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(
@@ -571,7 +571,7 @@ eval_g_eq <- function(X) {
 }
 
 eval_g_ineq <- function(X) {
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("dryad_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(
