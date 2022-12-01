@@ -6,15 +6,15 @@
 ####################################################################
 #' Clustering to Reduce Number of Models based on ROI and Errors
 #'
-#' \code{robyn_clusters()} uses output from \code{robyn_run()},
+#' \code{dryad_clusters()} uses output from \code{dryad_run()},
 #' to reduce the number of models and create bootstrapped confidence
 #' interval and help the user pick up the best (lowest combined error)
 #' of the most different kinds (clusters) of models.
 #'
 #' @inheritParams lares::clusterKmeans
 #' @inheritParams hyper_names
-#' @inheritParams robyn_outputs
-#' @param input \code{robyn_export()}'s output or \code{pareto_aggregated.csv} results.
+#' @inheritParams dryad_outputs
+#' @param input \code{dryad_export()}'s output or \code{pareto_aggregated.csv} results.
 #' @param dep_var_type Character. For dep_var_type 'revenue', ROI is used for clustering.
 #' For conversion', CPA is used for clustering.
 #' @param limit Integer. Top N results per cluster. If kept in "auto", will select k
@@ -28,7 +28,7 @@
 #' @examples
 #' \dontrun{
 #' # Having InputCollect and OutputCollect results
-#' cls <- robyn_clusters(
+#' cls <- dryad_clusters(
 #'   input = OutputCollect,
 #'   all_media = InputCollect$all_media,
 #'   k = 3, limit = 2,
@@ -37,11 +37,11 @@
 #' }
 #' @return List. Clustering results as labeled data.frames and plots.
 #' @export
-robyn_clusters <- function(input, dep_var_type, all_media = NULL, k = "auto", limit = 1,
+dryad_clusters <- function(input, dep_var_type, all_media = NULL, k = "auto", limit = 1,
                            weights = rep(1, 3), dim_red = "PCA",
                            quiet = FALSE, export = FALSE,
                            ...) {
-  if ("robyn_outputs" %in% class(input)) {
+  if ("dryad_outputs" %in% class(input)) {
     if (is.null(all_media)) {
       aux <- colnames(input$mediaVecCollect)
       all_media <- aux[-c(1, which(aux == "type"):length(aux))]
@@ -57,9 +57,9 @@ robyn_clusters <- function(input, dep_var_type, all_media = NULL, k = "auto", li
       df <- .prepare_df(input, all_media, dep_var_type)
     } else {
       stop(paste(
-        "You must run robyn_outputs(..., clusters = TRUE) or",
+        "You must run dryad_outputs(..., clusters = TRUE) or",
         "pass a valid data.frame (sames as pareto_aggregated.csv output)",
-        "in order to use robyn_clusters()"
+        "in order to use dryad_clusters()"
       ))
     }
   }
@@ -156,7 +156,7 @@ confidence_calcs <- function(xDecompAgg, cls, all_paid, dep_var_type, k, boot_n 
   df_clusters_outcome <- xDecompAgg %>%
     filter(!is.na(.data$total_spend)) %>%
     left_join(y = dplyr::select(cls$df, c("solID", "cluster")), by = "solID") %>%
-    dplyr::select(c("solID", "cluster", "rn", "roi_total", "cpa_total", "robynPareto")) %>%
+    dplyr::select(c("solID", "cluster", "rn", "roi_total", "cpa_total", "dryadPareto")) %>%
     group_by(.data$cluster, .data$rn) %>%
     mutate(n = n()) %>%
     filter(!is.na(.data$cluster)) %>%
