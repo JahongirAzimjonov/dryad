@@ -1,10 +1,3 @@
-# install.packages("goftest") # Cramer von Mises test for Normality
-# install.packages("genridge") # see https://www.rdocumentation.org/packages/genridge/versions/0.6.7/topics/vif.ridge
-# install.packages("car")
-# install.packages("tseries")
-# install.packages("RTransferEntropy") # Transfer entropy
-# etc
-
 ## check for missing packages and install them
 list.of.packages <- c("ggplot2", "goftest","nortest", "openxlsx", "readxl",
                       "RTransferEntropy", "ggpubr","purrr",
@@ -12,46 +5,24 @@ list.of.packages <- c("ggplot2", "goftest","nortest", "openxlsx", "readxl",
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 set.seed(123)
-library(dryad)
 library(ggplot2)
-# library(goftest)
-# install.packages("nortest")
 library(nortest)
 library(openxlsx)
 library(readxl)
 library(RTransferEntropy)
-# install.packages("ggpubr")
 library(ggpubr)
 library(purrr)
 library(tseries)
-# install.packages("fastmatrix")
-# install.packages("genridge")
 library(fastmatrix)
 library(genridge)
 library(car)
+# library(goftest)
+# install.packages("fastmatrix")
+# install.packages("genridge")
+# install.packages("ggpubr")
+# install.packages("nortest")
 
 ################################################################
-# We need the following parameters:
-# window_start (e.g. window_start = "2019-09-30")
-# window_end (e.g. window_end = "2022-09-30") We only want to do tests on data in this date range
-# depvar (this is the dependent variable)
-# paid_media_spends (set of paid media variables)
-# paid_media_vars (set of exposure metrics, if they are available, usually these will be impressions)
-
-
-# mydata <- get_my_data(dt = md)
-# mydata
-# 
-# depvar <- mydata[[depvar_name]]
-# depvar
-## Provide the dir name(i.e sub dir) that you want to create under main dir:
-## In our case, we save all csv files in a directory called 'csv-data' as following:
-
-# working_dir_path = getwd()
-# print(working_dir_path)
-# 
-# working_dir_path <- paste0(working_dir_path,"/Diagnostics")
-# working_dir_path
 
 create_csv_output_dir <- function(result_output_dir, sub_dir_csv){
   print(result_output_dir)
@@ -76,12 +47,6 @@ create_csv_output_dir <- function(result_output_dir, sub_dir_csv){
   return(csv_out_dir)
   }
 
-# dirs_for_csv = "csv-data"
-# csv_output_dir <- create_csv_output_dir(working_dir_path, dirs_for_csv)
-# csv_output_dir
-
-## Provide the dir name(i.e sub dir) that you want to create under main dir for plots:
-## In our case, we save all plot files in a directory called 'plots-data' as following:
 create_plt_output_dir <- function(result_output_dir, sub_dir_plt){
   print(result_output_dir)
   if (!dir.exists(result_output_dir)){
@@ -105,31 +70,9 @@ create_plt_output_dir <- function(result_output_dir, sub_dir_plt){
   return(plt_out_dir)
 }
 
-# dirs_for_plt = "plot-data"
-# plt_output_dir <- create_plt_output_dir(working_dir_path, dirs_for_plt)
-# plt_output_dir
-
-# sub_dir_plot = "plots-data"
-# plt_output_dir <- file.path(working_dir_path, sub_dir_plot)
-# print(plt_output_dir)
-# if (!dir.exists(plt_output_dir)){
-#   dir.create(plt_output_dir)
-# } 
-# else {
-#   print("Sub-main directory for saving plot files already exists!")
-# }
-
-
-# # 1. Cramer von Mises test for Normality
-# # With goftest package. Note: Classical Goodness-of-Fit Tests for Univariate Distributions
-# cramer_test <- cvm.test(depvar, null = "pnorm") ####  Null hypothesis: Normal distribution
-# print(cramer_test)
-# cramer_test$method
-# cramer_test$p.value
-# to-do output CvM test statistic as csv file
-
 # With nortest package. Note: Performs the Cramer-von Mises test for the composite hypothesis of normality
 cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
+library(nortest)
   cramer_testNortest <- cvm.test(depvar) ####  Null hypothesis: Normal distribution
   print(cramer_testNortest)
   
@@ -144,8 +87,6 @@ cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
   write.csv(df_cvm, file = cvm_csv_file_path)
   print("The results of the Cramer-von_Mises test on depvar for normality, have been written successfully!")
 }
-# cvm_t_f_n <- cvm_test_for_normality(depvar, depvar_name, csv_output_dir)
-# cvm_t_f_n
 
 ################################################################################
 
@@ -156,8 +97,14 @@ cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
 #  separate TE test for each spend variable
 transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_spends, depvar, 
                                   depvar_name, csv_output_dir, plt_output_dir){
-  te_excel_output_file_path <- paste(csv_output_dir, '/transfer_entropy.xlsx', sep="")
-  wb_te <- createWorkbook()
+ 
+
+ te_excel_output_file_path <- paste(csv_output_dir, '/transfer_entropy.xlsx', sep="")
+    
+	 library(openxlsx)
+	 library(RTransferEntropy)
+	 
+	wb_te <- createWorkbook()
   for(pms_tr_en in paid_media_spends){
     addWorksheet(wb = wb_te, sheetName = pms_tr_en)
     x <- as.data.frame(mydata)[, pms_tr_en]
@@ -244,6 +191,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
       })
     te_plt_ID <- te_plt_ID + 1 
   }
+  library(ggpubr)
   figure_arrangeTE <- ggarrange(plotlist=te_quantile_plot_list,
                       # labels = c("A", "B", "C"),
                       ncol = 5, nrow = 2)
@@ -256,9 +204,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
   print("The 'transfer entropy vs quantiles' results have been drawn to '.pdf' file successfully!")
   # dev.off()
 }
-# te_robyn <- transfer_entropy_test(entropy_method="Renyi", mydata, paid_media_spends, depvar, 
-#                                   depvar_name, csv_output_dir, plt_output_dir)
-# te_robyn
+
 ################################################################################
 
 # 3. KPSS Test for Trend Stationarity
@@ -271,6 +217,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 # This means the time series is NOT trend stationary.
 
 kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
+  library(tseries)
   kps <- kpss.test(depvar, null = c("Level", "Trend"), lshort = TRUE)
   # kpss_csv_output_file_path <- paste(csv_output_dir, "/kpss-depvar.xlsx",sep="")
   kpss_excel_output_file_path <- paste(csv_output_dir, "/kpss-test-on-depvar.xlsx",sep="")
@@ -294,17 +241,15 @@ kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
   saveWorkbook(wb = wb_kpss, kpss_excel_output_file_path, overwrite = TRUE) 
   print("The 'KPSS Test for Trend Stationarity' results have been written to '.xlsx' file successfully!")
 }
-# kpss_robyn <- kpss_test_for_trand_stationary(depvar, csv_output_dir)
-# kpss_robyn
 
 ################################################################################
 
 # Examples VIF for Ridge Regression
 # 4. VIF Ridge
-# lmod <- lm(depvar ~ tv_S + ooh_S + print_S + facebook_S + search_S, data=mydata)
+
 vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, paid_media_spends, plt_output_dir){
-  # lmod <- lm(my_depvar ~ tv_S + ooh_S + print_S + facebook_S + search_S, data=mydata) 
   # myfm <- as.formula(paste(colnames(data)[1], "~", var))
+  library(genridge)
   pms_formula <- paste(depvar_name, "~")
   for (i in seq_along(paid_media_spends)) {
     
@@ -329,19 +274,24 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
   lmod <- lm(formula = fm, data = mydata)
   lmod
   vif_output <- vif(lmod)
-  
+  vif_output
+  library(genridge)
   vif_excel_output_file_path <- paste(csv_output_dir, "/vif-test-on-paid-media-spends.xlsx", sep="")
   wb_vif <- createWorkbook()
   vif_sheet_name = "Variance Inflation Factors"
   addWorksheet(wb = wb_vif, sheetName = vif_sheet_name)
   # Create a data frame object to keep kpss output
-  df_vif = data.frame(
-    tv_S = vif_output[[1]],
-    ooh_S = vif_output[[2]],
-    print_S = vif_output[[3]],
-    facebook_S = vif_output[[4]],
-    search_S = vif_output[[5]]
-  )
+  
+  df_vif <- as.data.frame(vif_output)
+  df_vif
+  
+  # df_vif = data.frame(
+  #   tv_S = vif_output[[1]],
+  #   ooh_S = vif_output[[2]],
+  #   print_S = vif_output[[3]],
+  #   facebook_S = vif_output[[4]],
+  #   search_S = vif_output[[5]]
+  # )
   print(df_vif)
   
   writeDataTable(wb = wb_vif, sheet = vif_sheet_name,
@@ -402,8 +352,7 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
   print("The 'VIF for Ridge Regression' results have been drawn to '.png' files successfully!")
   dev.off()
 }
-# vif_ridge_regres_robyn <- vif_ridge_regression(lmod, csv_output_dir, mydata, paid_media_spends,plt_output_dir)
-# vif_ridge_regres_robyn 
+
 ################################################################################
 
 # 5. QQ Plot
@@ -411,7 +360,9 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
 qqplot_figures <- function(plt_output_dir, paid_media_spends, paid_media_colors){
   pdf(paste(plt_output_dir, "/Q-Q_paid_media_spends.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
-    pms <- paid_media_spends[pms_id]
+library(ggpubr)  
+library(ggplot2)
+   pms <- paid_media_spends[pms_id]
     ggqqp <- ggqqplot(data = mydata,
              x = pms,
              title = paste("Q-Q Plot over", pms),
@@ -492,14 +443,15 @@ qqplot_figures <- function(plt_output_dir, paid_media_spends, paid_media_colors)
   print("The 'Graphs of Dependent vs Independent Variables' results have been drawn to '.png' files successfully!")
   # dev.off()
 }
-# qq_plot_robyn <- qqplot_figures(plt_output_dir, paid_media_spends, paid_media_colors)
-# qq_plot_robyn
+# qq_plot_dryad <- qqplot_figures(plt_output_dir, paid_media_spends, paid_media_colors)
+# qq_plot_dryad
 
 ################################################################################
 
 # 6. a graph of depVar vs paid_media_spends (on one graph)
 graph_depvar_vs_indepvars <- function(plt_output_dir, mydata, depvar, 
                                             paid_media_spends, depvar_name, paid_media_colors){
+  library(ggplot2)
   myColors <- c("brown1", "yellowgreen", "lightgreen","lightblue","plum")
   pdf(paste(plt_output_dir, "/paid-media-spends-vs-revenue.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
@@ -545,73 +497,7 @@ graph_depvar_vs_indepvars <- function(plt_output_dir, mydata, depvar,
   print("The 'Graphs of Dependent vs Independent Variables' results have been drawn to '.png' files successfully!")
   # dev.off()
 }
-# dep_indep_vars_graph_robyn <- graph_depvar_vs_indepvars(plt_output_dir, mydata, 
-#                                                         depvar, paid_media_spends, depvar_name, paid_media_colors)
-# dep_indep_vars_graph_robyn
-################################################################################
 
-# 7. a graph of paid_media_impressions vs paid_media_spends (on one graph)
-# colnames(all_media_data)
-pm_impress_vs_spends_graph <- function(mydata, paid_media_impressions, paid_media_spends, plt_output_dir){
-  my_paid_media_colors_ggp7 = rainbow(length(paid_media_spends)*length(paid_media_impressions))
-  pdf(file=paste0(plt_output_dir,"/paid_media_impressions_vs_spends.pdf"))
-  ggp7_plt_ID <- 1
-  for (pms in paid_media_spends) {
-    for (pmi in paid_media_impressions) {
-      # ggp7 <- ggplot(mydata, mapping = aes(pmi,pms))+
-      #   geom_line(color="blue")
-      # print(ggp7)
-      ggp7 <- ggplot(mydata, aes(x = mydata[[pms]], y = mydata[[pmi]], group=1)) +
-        geom_line(color=my_paid_media_colors_ggp7[ggp7_plt_ID]) +
-        geom_point(color=my_paid_media_colors_ggp7[ggp7_plt_ID]) +
-        geom_smooth(color="darkgreen", linewidth=2) +
-        theme_bw() +
-        labs(x = pms, y = pmi)
-      
-      print(ggp7)
-    } 
-    ggp7_plt_ID <- ggp7_plt_ID + 1
-  }
-  dev.off()  
-  
-  ggp_7png_plot_list <- vector("list")
-  ggp_7png_plt_ID <- 1
-  pms7_ID <- 1
-  for (pms_7png in paid_media_spends) {
-    pmi7_ID <- 1
-    for (pmi_7png in paid_media_impressions) {
-      
-      ggp_7png_plot_list[[ggp_7png_plt_ID]] <- local({
-      
-        pms_7png <- paid_media_spends[[pms7_ID]]
-        pmi_7png <- paid_media_impressions[[pmi7_ID]]
-        
-        ggp_7png <- ggplot(mydata, aes(x = mydata[[pms_7png]], y = mydata[[pmi_7png]], group=1)) +
-        geom_line(color=my_paid_media_colors_ggp7[ggp_7png_plt_ID]) +
-        geom_point(color=my_paid_media_colors_ggp7[ggp_7png_plt_ID]) +
-        geom_smooth(color="black", linewidth=2) +
-        theme_bw() + labs(x = pms_7png, y = pmi_7png)
-      
-        })
-      # print(ggp7)
-      ggp_7png_plt_ID <- ggp_7png_plt_ID + 1
-      pmi7_ID <- pmi7_ID + 1
-    }
-    pms7_ID <- pms7_ID + 1
-    }
-    
-    figure_arr_ggp_7png <- ggarrange(plotlist=ggp_7png_plot_list,
-                                # labels = c("A", "B", "C"),
-                                ncol = 2, nrow = 3)
-    figure_ann_ggp_7png <- annotate_figure(figure_arr_ggp_7png,
-                                      top = text_grob("The relationship between 'paid media spendings' and 'revenue'", 
-                                                      color = "black", face = "bold", size = 14))
-    figure_ann_ggp_7png
-    ggsave(file=paste0(plt_output_dir, "/paid_media_impressions_vs_spends.png"), width=17, height=15, dpi=300)
-    print("The 'Graphs of Paid Media Impression vs Spends' results have been drawn to '.png' files successfully!")
-}
-# pm_im_sp_robyn <- pm_impress_vs_spends_graph(mydata, plt_output_dir)
-# pm_im_sp_robyn
 
 ############################################################################################################
 run_diagnostics <- function(mydata){
@@ -625,7 +511,7 @@ run_diagnostics <- function(mydata){
   my_paid_media_spends <- InputCollect$paid_media_spends
   # my_paid_media_spends
   # c("tv_S", "ooh_S", "print_S", "facebook_S", "search_S") # enter paid media spends here
-  my_paid_media_impressions <- InputCollect$paid_media_vars
+  my_paid_media_impressions <- c("facebook_spend")
   my_context_vars <- InputCollect$context_vars
   # my_context_vars
   # c("competitor_sales_B", "events")
@@ -634,13 +520,16 @@ run_diagnostics <- function(mydata){
   my_depvar <- mydata[[my_depvar_name]]
   # my_depvar
     
-  my_all_media <- all_media_data
+  # my_all_media <- all_media_data
   
   # mydata[my_depvar_name]
   # mydata[my_paid_media_spends]
   
+  # This part is for conducting some diagnostics tests on dependent and independent variables
+  # Importing the diagnostics.r module using source(...) function
+  # source("~/jobs/work/TSD/dryad/R/R/diagnostics_via_function.r", encoding = "UTF-8")
   
-  # Creating main directory inside Robyn results folder. In my case, it is in the Desktop folder.
+  # Creating main directory inside dryad results folder. In my case, it is in the Desktop folder.
   diag_res_output_dir <- paste0(OutputCollect$plot_folder,"Diagnostics")
   diag_res_output_dir
   
@@ -660,32 +549,31 @@ run_diagnostics <- function(mydata){
   cvm_t_f_n
   
   # 2. Transfer entropy on dependent and independent variables
-  te_robyn <- transfer_entropy_test(entropy_method="Shannon", mydata, my_paid_media_spends, my_depvar, 
+  te_dryad <- transfer_entropy_test(entropy_method="Shannon", mydata, my_paid_media_spends, my_depvar, 
                                     my_depvar_name, csv_output_dir, plt_output_dir)
-  te_robyn
+  te_dryad
   
   # 3. KPSS Test for Trend Stationarity performs KPSS test on depVar.
-  kpss_robyn <- kpss_test_for_trand_stationary(my_depvar, csv_output_dir)
-  kpss_robyn
+  kpss_dryad <- kpss_test_for_trand_stationary(my_depvar, csv_output_dir)
+  kpss_dryad
   
   # 4. Examples VIF for Ridge Regression
-  vif_ridge_regres_robyn <- vif_ridge_regression(my_depvar, my_depvar_name, 
+  vif_ridge_regres_dryad <- vif_ridge_regression(my_depvar, my_depvar_name, 
                                                  csv_output_dir, mydata, my_paid_media_spends, plt_output_dir)
-  vif_ridge_regres_robyn 
+  vif_ridge_regres_dryad 
   
   # 5. Quantile-Quantile Plots
-  qq_plot_robyn <- qqplot_figures(plt_output_dir, my_paid_media_spends, my_paid_media_colors)
-  qq_plot_robyn
+  qq_plot_dryad <- qqplot_figures(plt_output_dir, my_paid_media_spends, my_paid_media_colors)
+  qq_plot_dryad
   
   # 6. Graphs of depVar vs paid_media_spends (on one graph)
-  dep_indep_vars_graph_robyn <- graph_depvar_vs_indepvars(plt_output_dir, mydata, my_depvar, 
+  dep_indep_vars_graph_dryad <- graph_depvar_vs_indepvars(plt_output_dir, mydata, my_depvar, 
                                                           my_paid_media_spends, my_depvar_name, my_paid_media_colors)
-  dep_indep_vars_graph_robyn
+  dep_indep_vars_graph_dryad
   
-  # 7. A graph of paid_media_impressions vs paid_media_spends (on one graph)
-  colnames(my_all_media)
-  pm_im_sp_robyn <- pm_impress_vs_spends_graph(my_all_media, my_paid_media_impressions, my_paid_media_spends, plt_output_dir)
-  pm_im_sp_robyn
+  # # 7. A graph of paid_media_impressions vs paid_media_spends (on one graph)
+  # colnames(my_all_media)
+  # pm_im_sp_dryad <- pm_impress_vs_spends_graph(my_all_media, my_paid_media_impressions, my_paid_media_spends, plt_output_dir)
+  # pm_im_sp_dryad
   
 }
- 
