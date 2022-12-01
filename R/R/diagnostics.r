@@ -275,7 +275,7 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
   lmod
   vif_output <- vif(lmod)
   vif_output
-  library(genridge)
+  invisible(library(genridge))
   vif_excel_output_file_path <- paste(csv_output_dir, "/vif-test-on-paid-media-spends.xlsx", sep="")
   wb_vif <- createWorkbook()
   vif_sheet_name = "Variance Inflation Factors"
@@ -360,8 +360,8 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
 qqplot_figures <- function(plt_output_dir, paid_media_spends, paid_media_colors){
   pdf(paste(plt_output_dir, "/Q-Q_paid_media_spends.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
-library(ggpubr)  
-library(ggplot2)
+invisible(library(ggpubr))
+invisible(library(ggplot2))
    pms <- paid_media_spends[pms_id]
     ggqqp <- ggqqplot(data = mydata,
              x = pms,
@@ -451,7 +451,7 @@ library(ggplot2)
 # 6. a graph of depVar vs paid_media_spends (on one graph)
 graph_depvar_vs_indepvars <- function(plt_output_dir, mydata, depvar, 
                                             paid_media_spends, depvar_name, paid_media_colors){
-  library(ggplot2)
+  invisible(library(ggplot2))
   myColors <- c("brown1", "yellowgreen", "lightgreen","lightblue","plum")
   pdf(paste(plt_output_dir, "/paid-media-spends-vs-revenue.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
