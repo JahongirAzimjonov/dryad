@@ -72,7 +72,7 @@ create_plt_output_dir <- function(result_output_dir, sub_dir_plt){
 
 # With nortest package. Note: Performs the Cramer-von Mises test for the composite hypothesis of normality
 cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
-library(nortest)
+invisible(library(nortest))
   cramer_testNortest <- cvm.test(depvar) ####  Null hypothesis: Normal distribution
   print(cramer_testNortest)
   
@@ -101,8 +101,8 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 
  te_excel_output_file_path <- paste(csv_output_dir, '/transfer_entropy.xlsx', sep="")
     
-	 library(openxlsx)
-	 library(RTransferEntropy)
+	 invisible(library(openxlsx))
+	 invisible(library(RTransferEntropy))
 	 
 	wb_te <- createWorkbook()
   for(pms_tr_en in paid_media_spends){
@@ -191,7 +191,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
       })
     te_plt_ID <- te_plt_ID + 1 
   }
-  library(ggpubr)
+  invisible(library(ggpubr))
   figure_arrangeTE <- ggarrange(plotlist=te_quantile_plot_list,
                       # labels = c("A", "B", "C"),
                       ncol = 5, nrow = 2)
@@ -217,7 +217,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 # This means the time series is NOT trend stationary.
 
 kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
-  library(tseries)
+  invisible(library(tseries))
   kps <- kpss.test(depvar, null = c("Level", "Trend"), lshort = TRUE)
   # kpss_csv_output_file_path <- paste(csv_output_dir, "/kpss-depvar.xlsx",sep="")
   kpss_excel_output_file_path <- paste(csv_output_dir, "/kpss-test-on-depvar.xlsx",sep="")
@@ -249,7 +249,7 @@ kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
 
 vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, paid_media_spends, plt_output_dir){
   # myfm <- as.formula(paste(colnames(data)[1], "~", var))
-  library(genridge)
+  invisible(library(genridge))
   pms_formula <- paste(depvar_name, "~")
   for (i in seq_along(paid_media_spends)) {
     
