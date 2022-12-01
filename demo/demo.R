@@ -68,12 +68,12 @@ if (length(InputCollect$exposure_vars) > 0) {
   InputCollect$modNLS$plots$search_spend
 }
 
-## Run all trials and iterations. Use ?dryad_run to check parameter definition
+## Run all trials and iterations. 
 OutputModels <- dryad_run(
   InputCollect = InputCollect, # feed in all model specification
   cores = NULL, # NULL defaults to max available - 1
-  iterations = 500, # 2000 recommended for the dummy dataset with no calibration
-  trials = 1, # 5 recommended for the dummy dataset
+  iterations = 2000, # 2000 recommended for the dummy dataset with no calibration
+  trials = 5, # 5 recommended for the dummy dataset
   add_penalty_factor = FALSE, # Experimental feature. Use with caution.
   outputs = FALSE # outputs = FALSE disables direct model output - dryad_outputs()
 )
@@ -89,16 +89,16 @@ OutputCollect <- dryad_outputs(
   # min_candidates = 100, # top pareto models for clustering. Default to 100
   # calibration_constraint = 0.1, # range c(0.01, 0.1) & default at 0.1
   csv_out = "pareto", # "pareto", "all", or NULL (for none)
-  clusters = FALSE, # Set to TRUE to cluster similar models by ROAS. 
-  plot_pareto = FALSE, # Set to FALSE to deactivate plotting and saving model one-pagers
+  clusters = TRUE, # Set to TRUE to cluster similar models by ROAS. 
+  plot_pareto = TRUE, # Set to FALSE to deactivate plotting and saving model one-pagers
   plot_folder = dryad_object, # path for plots export
   export = TRUE # this will create files locally
 )
 
-# check convergence rules ?dryad_converge
+# check convergence rules 
 OutputModels$convergence$moo_distrb_plot
 # print(OutputCollect)
 
+# do diagnostics
 run_diagnostics(mydata)
 
- 
