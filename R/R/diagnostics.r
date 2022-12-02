@@ -285,14 +285,7 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
   df_vif <- as.data.frame(vif_output)
   df_vif
   
-  # df_vif = data.frame(
-  #   tv_S = vif_output[[1]],
-  #   ooh_S = vif_output[[2]],
-  #   print_S = vif_output[[3]],
-  #   facebook_S = vif_output[[4]],
-  #   search_S = vif_output[[5]]
-  # )
-  print(df_vif)
+    print(df_vif)
   
   writeDataTable(wb = wb_vif, sheet = vif_sheet_name,
                  x = df_vif, xy = c("A", 1), rowNames = FALSE,
@@ -510,12 +503,11 @@ run_diagnostics <- function(mydata){
   # my_depvar_name
   my_paid_media_spends <- InputCollect$paid_media_spends
   # my_paid_media_spends
-  # c("tv_S", "ooh_S", "print_S", "facebook_S", "search_S") # enter paid media spends here
-  my_paid_media_impressions <- c("facebook_spend")
+  
+  my_paid_media_impressions <- InputCollect$paid_media_vars
   my_context_vars <- InputCollect$context_vars
   # my_context_vars
-  # c("competitor_sales_B", "events")
-  my_paid_media_colors = rainbow(length(my_paid_media_spends))
+   my_paid_media_colors = rainbow(length(my_paid_media_spends))
   
   my_depvar <- mydata[[my_depvar_name]]
   # my_depvar
@@ -526,8 +518,6 @@ run_diagnostics <- function(mydata){
   # mydata[my_paid_media_spends]
   
   # This part is for conducting some diagnostics tests on dependent and independent variables
-  # Importing the diagnostics.r module using source(...) function
-  # source("~/jobs/work/TSD/dryad/R/R/diagnostics_via_function.r", encoding = "UTF-8")
   
   # Creating main directory inside dryad results folder. In my case, it is in the Desktop folder.
   diag_res_output_dir <- paste0(OutputCollect$plot_folder,"Diagnostics")
