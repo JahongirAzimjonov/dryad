@@ -16,7 +16,7 @@ Config/reticulate:
       list(package = "nevergrad", pip = TRUE)
     )
   )
-URL: https://github.com/facebookexperimental/Robyn, https://facebookexperimental.github.io/Robyn/
+URL: https://github.com/hemicontinuous/dryad
 BugReports: https://github.com/facebookexperimental/Robyn/issues
 RoxygenNote: 7.1.2
 License: MIT + file LICENSE
