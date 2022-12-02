@@ -445,7 +445,7 @@ invisible(library(ggplot2))
 graph_depvar_vs_indepvars <- function(plt_output_dir, mydata, depvar, 
                                             paid_media_spends, depvar_name, paid_media_colors){
   invisible(library(ggplot2))
-  myColors <- c("brown1", "yellowgreen", "lightgreen","lightblue","plum")
+  myColors <- c("#5778a4","#e49444", "#d1615d", "#85b6b2", "#6a9f58", "#e7ca60", "#a87c9f", "#f1a2a9", "#967662", "#b8b0ac")
   pdf(paste(plt_output_dir, "/paid-media-spends-vs-revenue.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
     pms <- paid_media_spends[pms_id]
