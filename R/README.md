@@ -1,4 +1,4 @@
-# dryad MMM <img src='data/logo.png' align="right" height="169px" />
+# dryad<img src='data/logo.png' align="right" height="169px" />
 ### Marketing Mix Model with bootstrap estimates
 
 ---
