@@ -509,10 +509,10 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       }
 
       ## Aggregate one-pager plots and export
-      ver <- as.character(utils::packageVersion("dryadMMM"))
+      ver <- as.character(utils::packageVersion("dryad"))
       rver <- utils::sessionInfo()$R.version
       onepagerTitle <- sprintf("One-pager for Model ID: %s", sid)
-      onepagerCaption <- sprintf("dryadMMM v%s [R-%s.%s]", ver, rver$major, rver$minor)
+      onepagerCaption <- sprintf("dryad v%s [R-%s.%s]", ver, rver$major, rver$minor)
       pg <- wrap_plots(p5, p2, p4, p1, p3, p7, p8, p6, ncol = 2) +
         plot_annotation(
           title = onepagerTitle, subtitle = errors,
