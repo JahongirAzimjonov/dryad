@@ -72,7 +72,7 @@ create_plt_output_dir <- function(result_output_dir, sub_dir_plt){
 
 # With nortest package. Note: Performs the Cramer-von Mises test for the composite hypothesis of normality
 cvm_test_for_normality <- function(depvar, depvar_name, csv_output_dir){
-invisible(library(nortest))
+library(nortest)
   cramer_testNortest <- cvm.test(depvar) ####  Null hypothesis: Normal distribution
   print(cramer_testNortest)
   
@@ -101,8 +101,8 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 
  te_excel_output_file_path <- paste(csv_output_dir, '/transfer_entropy.xlsx', sep="")
     
-	 invisible(library(openxlsx))
-	 invisible(library(RTransferEntropy))
+	 library(openxlsx)
+	 library(RTransferEntropy)
 	 
 	wb_te <- createWorkbook()
   for(pms_tr_en in paid_media_spends){
@@ -191,7 +191,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
       })
     te_plt_ID <- te_plt_ID + 1 
   }
-  invisible(library(ggpubr))
+  library(ggpubr)
   figure_arrangeTE <- ggarrange(plotlist=te_quantile_plot_list,
                       # labels = c("A", "B", "C"),
                       ncol = 5, nrow = 2)
@@ -217,7 +217,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 # This means the time series is NOT trend stationary.
 
 kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
-  invisible(library(tseries))
+  library(tseries)
   kps <- kpss.test(depvar, null = c("Level", "Trend"), lshort = TRUE)
   # kpss_csv_output_file_path <- paste(csv_output_dir, "/kpss-depvar.xlsx",sep="")
   kpss_excel_output_file_path <- paste(csv_output_dir, "/kpss-test-on-depvar.xlsx",sep="")
@@ -249,7 +249,7 @@ kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
 
 vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, paid_media_spends, plt_output_dir){
   # myfm <- as.formula(paste(colnames(data)[1], "~", var))
-  invisible(library(genridge))
+  library(genridge)
   pms_formula <- paste(depvar_name, "~")
   for (i in seq_along(paid_media_spends)) {
     
@@ -275,7 +275,7 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
   lmod
   vif_output <- vif(lmod)
   vif_output
-  invisible(library(genridge))
+  library(genridge)
   vif_excel_output_file_path <- paste(csv_output_dir, "/vif-test-on-paid-media-spends.xlsx", sep="")
   wb_vif <- createWorkbook()
   vif_sheet_name = "Variance Inflation Factors"
@@ -353,8 +353,8 @@ vif_ridge_regression <- function(depvar, depvar_name, csv_output_dir, mydata, pa
 qqplot_figures <- function(plt_output_dir, paid_media_spends, paid_media_colors){
   pdf(paste(plt_output_dir, "/Q-Q_paid_media_spends.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
-invisible(library(ggpubr))
-invisible(library(ggplot2))
+library(ggpubr)
+library(ggplot2)
    pms <- paid_media_spends[pms_id]
     ggqqp <- ggqqplot(data = mydata,
              x = pms,
@@ -444,7 +444,7 @@ invisible(library(ggplot2))
 # 6. a graph of depVar vs paid_media_spends (on one graph)
 graph_depvar_vs_indepvars <- function(plt_output_dir, mydata, depvar, 
                                             paid_media_spends, depvar_name, paid_media_colors){
-  invisible(library(ggplot2))
+  library(ggplot2)
   myColors <- c("#e49444", "#d1615d", "#85b6b2", "#6a9f58", "#5778a4", "#e7ca60", "#a87c9f", "#f1a2a9", "#967662", "#b8b0ac")
   pdf(paste(plt_output_dir, "/paid-media-spends-vs-revenue.pdf", sep=""), onefile = TRUE)
   for (pms_id in seq_along(paid_media_spends)){
