@@ -1,4 +1,5 @@
 library(dryad)
+packageVersion("dryad")
 library(readxl)
 Sys.setenv(R_FUTURE_FORK_ENABLE = "true") ## Force multicore 
 options(future.fork.enable = TRUE)
