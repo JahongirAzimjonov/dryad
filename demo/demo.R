@@ -7,7 +7,7 @@ setwd("C:/Users/charl/Documents/dryad") # set WD
 # data("dt_simulated_weekly")
 # head(dt_simulated_weekly)
 
-mydata <- read_excel("demo_data_Nov22.xlsx", sheet = "data")
+mydata <- read_excel("demo_data_1.xlsx", sheet = "data")
 
 data("dt_prophet_holidays") # holiday frame
 head(dt_prophet_holidays)
