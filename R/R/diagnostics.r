@@ -562,7 +562,7 @@ run_diagnostics <- function(mydata){
   dep_indep_vars_graph_dryad
   
   # # 7. A graph of paid_media_impressions vs paid_media_spends (on one graph)
-   colnames(my_all_media)
-   pm_im_sp_dryad <- pm_impress_vs_spends_graph(my_all_media, my_paid_media_impressions, my_paid_media_spends, plt_output_dir)
-   pm_im_sp_dryad  
+   # colnames(my_all_media)
+   # pm_im_sp_dryad <- pm_impress_vs_spends_graph(my_all_media, my_paid_media_impressions, my_paid_media_spends, plt_output_dir)
+   # pm_im_sp_dryad  
 }
