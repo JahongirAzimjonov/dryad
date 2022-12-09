@@ -70,8 +70,8 @@ if (length(InputCollect$exposure_vars) > 0) {
 OutputModels <- dryad_run(
   InputCollect = InputCollect, # feed in all model specification
   cores = NULL, # NULL defaults to max available - 1
-  iterations = 2000, # 2000 recommended for the dummy dataset with no calibration
-  trials = 5, # 5 recommended for the dummy dataset
+  iterations = 1000, # 2000 recommended for the dummy dataset with no calibration
+  trials = 1, # 5 recommended for the dummy dataset
   add_penalty_factor = FALSE, # Experimental feature. Use with caution.
   outputs = FALSE # outputs = FALSE disables direct model output - dryad_outputs()
 )
@@ -100,3 +100,5 @@ OutputModels$convergence$moo_distrb_plot
 # run diagnostics
 run_diagnostics(mydata)
 
+# run forecast
+run_forecast(mydata)
