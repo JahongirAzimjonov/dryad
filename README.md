@@ -1,5 +1,7 @@
-# dryad<img src='R/data/logo.png' align="right" height="169px" />
+# dryad<img src='data/logo.png' align="right" height="169px" />
 ### Marketing Mix Model with bootstrap estimates
+
+Please note that the project is in beta phase. 
 
 ---
 
@@ -38,3 +40,6 @@ As a result, the paradigm for data analysis provided by machine learning differs
 
 It is sometimes convenient to contrast maximum likelihood estimates with supervised machine learning. This comparison is slightly exaggerated. Rather, the two approaches should be considered as opposite extremities of a methodological continuum. Linear regression approaches like Lasso and ridge regression, as well as hybrids like Elastic Net, sit somewhere in the centre, delivering some mix of maximum likelihood estimation's explanatory capacity while keeping out-of-sample predictive performance on high-dimensional datasets.
   
+
+  
+ 
