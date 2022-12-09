@@ -5,9 +5,6 @@ Sys.setenv(R_FUTURE_FORK_ENABLE = "true") ## Force multicore
 options(future.fork.enable = TRUE)
 setwd("C:/Users/charl/Documents/dryad") # set WD
 
-# data("dt_simulated_weekly")
-# head(dt_simulated_weekly)
-
 mydata <- read_excel("demo_data_1.xlsx", sheet = "data")
 
 data("dt_prophet_holidays") # holiday frame
