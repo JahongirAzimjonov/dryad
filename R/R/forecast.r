@@ -3,7 +3,7 @@ prophet_forecast_function <- function(depvar, csv_output_dir){
  library(prophet)
  #library(magrittr)
   
-  df1 <- InputCollect$dep_var
+  df1 <- mydata[[InputCollect$dep_var]]
   
   f1 <- prophet(df1, daily.seasonality = FALSE, weekly.seasonality = TRUE, yearly.seasonality = TRUE)
   forecast <- make_future_dataframe(f1, periods = 180)
