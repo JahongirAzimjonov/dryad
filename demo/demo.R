@@ -100,6 +100,6 @@ OutputCollect <- dryad_outputs(
 OutputModels$convergence$moo_distrb_plot
 # print(OutputCollect)
 
-# do diagnostics
+# run diagnostics
 run_diagnostics(mydata)
 
