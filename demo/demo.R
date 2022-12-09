@@ -101,4 +101,4 @@ OutputModels$convergence$moo_distrb_plot
 run_diagnostics(mydata)
 
 # run forecast
-run_forecast(mydata)
+run_week_forecast(mydata)
