@@ -216,7 +216,7 @@ transfer_entropy_test <- function(entropy_method="Shannon", mydata, paid_media_s
 # Example 2: The p-value is 0.04751. Since this value is less than .05, we reject the null hypothesis of the KPSS test.
 # This means the time series is NOT trend stationary.
 
-kpss_test_for_trand_stationary <- function(depvar, csv_output_dir){
+kpss_test_for_trend_stationary <- function(depvar, csv_output_dir){
   library(tseries)
   kps <- kpss.test(depvar, null = c("Level", "Trend"), lshort = TRUE)
   # kpss_csv_output_file_path <- paste(csv_output_dir, "/kpss-depvar.xlsx",sep="")
@@ -544,7 +544,7 @@ run_diagnostics <- function(mydata){
   te_dryad
   
   # 3. KPSS Test for Trend Stationarity performs KPSS test on depVar.
-  kpss_dryad <- kpss_test_for_trand_stationary(my_depvar, csv_output_dir)
+  kpss_dryad <- kpss_test_for_trend_stationary(my_depvar, csv_output_dir)
   kpss_dryad
   
   # 4. Examples VIF for Ridge Regression
