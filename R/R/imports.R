@@ -25,7 +25,6 @@
 #' all_of bind_cols mutate_at tally n_distinct
 #' @importFrom foreach foreach %dopar% getDoParWorkers registerDoSEQ
 #' @import ggplot2
-#' @import readxl
 #' @importFrom ggridges geom_density_ridges geom_density_ridges_gradient
 #' @importFrom glmnet cv.glmnet glmnet
 #' @importFrom jsonlite fromJSON toJSON write_json read_json
@@ -36,7 +35,7 @@
 #' @importFrom nloptr nloptr
 #' @importFrom parallel detectCores
 #' @importFrom patchwork guide_area plot_layout plot_annotation wrap_plots
-#' @importFrom prophet add_regressor fit.prophet prophet
+#' @importFrom prophet add_regressor add_seasonality fit.prophet prophet
 #' @importFrom reticulate tuple use_condaenv import conda_create conda_install py_module_available
 #' virtualenv_create py_install use_virtualenv
 #' @importFrom rPref low psel

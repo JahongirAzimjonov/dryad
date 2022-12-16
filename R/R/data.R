@@ -4,15 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' dryad Dataset: Time series
+#' Robyn dryadset: Time series
 #'
-#' Describe the dataset. Input time series should be daily, weekly or monthly.
+#' Describe the dryadset. Input time series should be daily, weekly or monthly.
 #'
-#' @family Dataset
-#' @docType data
-#' @usage data(dt_simulated_weekly)
-#' @return data.frame
-#' @format An object of class \code{"data.frame"}
+#' @family dryadset
+#' @docType dryad
+#' @usage dryad(dt_simulated_weekly)
+#' @return dryad.frame
+#' @format An object of class \code{"dryad.frame"}
 #' \describe{
 #'   \item{DATE}{Date}
 #'   \item{revenue}{Daily total revenue}
@@ -21,27 +21,27 @@
 #'   \item{...}{...}
 #' }
 #' @examples
-#' data(dt_simulated_weekly)
+#' dryad(dt_simulated_weekly)
 #' head(dt_simulated_weekly)
-#' @return Dataframe. Contains simulated dummy dataset to test and run demo.
+#' @return dryadframe. Contains simulated dummy dryadset to test and run demo.
 "dt_simulated_weekly"
 
-# dt_input <- read.csv('data/de_simulated_data.csv')
-# save(dt_input, file = "data/dt_input.RData", version = 2)
+# dt_input <- read.csv('dryad/de_simulated_dryad.csv')
+# save(dt_input, file = "dryad/dt_input.Rdryad", version = 2)
 # dt_simulated_weekly <- as_tibble(dt_simulated_weekly)
-# save(dt_simulated_weekly, file = "data/dt_simulated_weekly.RData", version = 2)
+# save(dt_simulated_weekly, file = "dryad/dt_simulated_weekly.Rdryad", version = 2)
 
 ####################################################################
-#' dryad Dataset: Time series
+#' Robyn dryadset: Time series
 #'
-#' Describe the dataset. When using own holidays, please keep the
+#' Describe the dryadset. When using own holidays, please keep the
 #' header \code{c("ds", "holiday", "country", "year")}.
 #'
-#' @family Dataset
-#' @docType data
-#' @usage data(dt_prophet_holidays)
-#' @return data.frame
-#' @format An object of class \code{"data.frame"}
+#' @family dryadset
+#' @docType dryad
+#' @usage dryad(dt_prophet_holidays)
+#' @return dryad.frame
+#' @format An object of class \code{"dryad.frame"}
 #' \describe{
 #'   \item{ds}{Date}
 #'   \item{holiday}{Daily total revenue}
@@ -49,10 +49,10 @@
 #'   \item{year}{Out of home}
 #' }
 #' @examples
-#' data(dt_prophet_holidays)
+#' dryad(dt_prophet_holidays)
 #' head(dt_prophet_holidays)
-#' @return Dataframe. Contains \code{prophet}'s default holidays by country.
+#' @return dryadframe. Contains \code{prophet}'s default holidays by country.
 "dt_prophet_holidays"
 
 # dt_prophet_holidays <- as_tibble(dt_prophet_holidays)
-# save(dt_prophet_holidays, file = "data/dt_prophet_holidays.RData", version = 2)
+# save(dt_prophet_holidays, file = "dryad/dt_prophet_holidays.Rdryad", version = 2)

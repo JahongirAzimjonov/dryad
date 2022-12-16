@@ -4,12 +4,12 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Generate and Export Plots
+#' Generate and Export dryad Plots
 #'
 #' @rdname dryad_outputs
 #' @return Invisible list with \code{ggplot} plots.
 #' @export
-dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
+dryad_plots <- function(InputCollect, OutputCollect, export = TRUE, ...) {
   check_class("dryad_outputs", OutputCollect)
   pareto_fronts <- OutputCollect$pareto_fronts
   hyper_fixed <- OutputCollect$hyper_fixed
@@ -27,7 +27,7 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
       all_plots[["pProphet"]] <- pProphet <- ggplot(
         dt_plotProphet, aes(x = .data$ds, y = .data$value)
       ) +
-        geom_line(color = "salmon4") +
+        geom_line(color = "steelblue") +
         facet_wrap(~ .data$variable, scales = "free", ncol = 1) +
         labs(title = "Prophet decomposition", x = NULL, y = NULL) +
         theme_lares() +
@@ -42,24 +42,24 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
       }
     }
 
-     ## Spend exposure model
-     if (any(InputCollect$exposure_selector)) {
-       all_plots[["pSpendExposure"]] <- pSpendExposure <- wrap_plots(
-         InputCollect$plotNLSCollect,
-         ncol = ifelse(length(InputCollect$plotNLSCollect) <= 3, length(InputCollect$plotNLSCollect), 3)
-       ) +
-         plot_annotation(
-           title = "Spend-exposure fitting",
-           theme = theme(plot.title = element_text(hjust = 0.5))
-         )
-       if (export) ggsave(
-         paste0(OutputCollect$plot_folder, "spend_exposure_fitting.png"),
-         plot = pSpendExposure, dpi = 600, width = 12, limitsize = FALSE,
-         height = ceiling(length(InputCollect$plotNLSCollect) / 3) * 7
-       )
-     } else {
-       message("No spend-exposure modelling needed. All media variables used for MMM are spend variables")
-     }
+    # ## Spend exposure model
+    # if (any(InputCollect$exposure_selector)) {
+    #   all_plots[["pSpendExposure"]] <- pSpendExposure <- wrap_plots(
+    #     InputCollect$plotNLSCollect,
+    #     ncol = ifelse(length(InputCollect$plotNLSCollect) <= 3, length(InputCollect$plotNLSCollect), 3)
+    #   ) +
+    #     plot_annotation(
+    #       title = "Spend-exposure fitting with Michaelis-Menten model",
+    #       theme = theme(plot.title = element_text(hjust = 0.5))
+    #     )
+    #   if (export) ggsave(
+    #     paste0(OutputCollect$plot_folder, "spend_exposure_fitting.png"),
+    #     plot = pSpendExposure, dpi = 600, width = 12, limitsize = FALSE,
+    #     height = ceiling(length(InputCollect$plotNLSCollect) / 3) * 7
+    #   )
+    # } else {
+    #  # message("No spend-exposure modelling needed. All media variables used for MMM are spend variables")
+    # }
 
     ## Hyperparameter sampling distribution
     if (length(temp_all) > 0) {
@@ -108,7 +108,7 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
       pParFront <- ggplot(resultHypParam, aes(
         x = .data$nrmse, y = .data$decomp.rssd, colour = .data$iterations
       )) +
-        scale_colour_gradient(low = "seagreen1", high = "seagreen4") +
+        scale_colour_gradient(low = "skyblue", high = "navyblue") +
         labs(
           title = ifelse(!calibrated, "Multi-objective Evolutionary Performance",
             "Multi-objective Evolutionary Performance with Calibration"
@@ -135,11 +135,11 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
       # Add pareto front lines
       for (pfs in 1:max(pareto_fronts_vec)) {
         if (pfs == 2) {
-          pf_color <- "salmon3"
+          pf_color <- "coral3"
         } else if (pfs == 3) {
-          pf_color <- "salmon2"
+          pf_color <- "coral2"
         } else {
-          pf_color <- "salmon"
+          pf_color <- "coral"
         }
         temp <- resultHypParam[resultHypParam$dryadPareto %in% pfs, ]
         if (nrow(temp) > 1) {
@@ -194,7 +194,7 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
             linetype = .data$trial
           )
         ) +
-          scale_fill_distiller(palette = "OrRd") +
+          scale_fill_distiller(palette = "GnBu") +
           geom_density_ridges(scale = 4, col = "white", quantile_lines = TRUE, quantiles = 2, alpha = 0.7) +
           facet_wrap(~ .data$variables, scales = "free") +
           guides(fill = "none", linetype = "none") +
@@ -214,6 +214,15 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE) {
     }
   } # End of !hyper_fixed
 
+  OutputModels$ts_validation_plot <- ts_validation(OutputModels, quiet = TRUE, ...)
+  if (!is.null(OutputModels$ts_validation_plot)) {
+    ggsave(
+      paste0(OutputCollect$plot_folder, "ts_validation", ".png"),
+      plot = OutputModels$ts_validation_plot, dpi = 300,
+      width = 10, height = 12, limitsize = FALSE
+    )
+  }
+
   return(invisible(all_plots))
 }
 
@@ -232,13 +241,16 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
     hyper_fixed <- OutputCollect$hyper_fixed
     resultHypParam <- as_tibble(OutputCollect$resultHypParam)
     xDecompAgg <- as_tibble(OutputCollect$xDecompAgg)
+    val <- isTRUE(OutputCollect$OutputModels$ts_validation)
     sid <- NULL # for parallel loops
   }
   if (!is.null(select_model)) {
     if ("clusters" %in% select_model) select_model <- OutputCollect$clusters$models$solID
     resultHypParam <- resultHypParam[resultHypParam$solID %in% select_model, ]
     xDecompAgg <- xDecompAgg[xDecompAgg$solID %in% select_model, ]
-    if (!quiet) message(">> Generating only cluster results one-pagers (", nrow(resultHypParam), ")...")
+    if (!quiet & nrow(resultHypParam) > 1) {
+      message(">> Generating only cluster results one-pagers (", nrow(resultHypParam), ")...")
+    }
   }
 
   # Prepare for parallel plotting
@@ -255,12 +267,16 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
   if (!all(pareto_fronts_vec %in% all_fronts)) pareto_fronts_vec <- all_fronts
 
   if (check_parallel_plot()) {
-    if (!quiet) message(paste(">> Plotting", count_mod_out, "selected models on", OutputCollect$cores, "cores..."))
+    if (!quiet & nrow(resultHypParam) > 1) {
+      message(paste(">> Plotting", count_mod_out, "selected models on", OutputCollect$cores, "cores..."))
+    }
   } else {
-    if (!quiet) message(paste(">> Plotting", count_mod_out, "selected models on 1 core (MacOS fallback)..."))
+    if (!quiet & nrow(resultHypParam) > 1) {
+      message(paste(">> Plotting", count_mod_out, "selected models on 1 core (MacOS fallback)..."))
+    }
   }
 
-  if (!quiet && count_mod_out > 0) {
+  if (!quiet && count_mod_out > 1) {
     pbplot <- txtProgressBar(min = 0, max = count_mod_out, style = 3)
   }
   temp <- OutputCollect$allPareto$plotDataCollect
@@ -279,24 +295,30 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
     parallelResult <- foreach(sid = uniqueSol) %dorng% { # sid = uniqueSol[1]
       plotMediaShareLoop <- plotMediaShare[plotMediaShare$solID == sid, ]
       rsq_train_plot <- round(plotMediaShareLoop$rsq_train[1], 4)
-      nrmse_plot <- round(plotMediaShareLoop$nrmse[1], 4)
+      rsq_val_plot <- round(plotMediaShareLoop$rsq_val[1], 4)
+      rsq_test_plot <- round(plotMediaShareLoop$rsq_test[1], 4)
+      nrmse_train_plot <- round(plotMediaShareLoop$nrmse_train[1], 4)
+      nrmse_val_plot <- round(plotMediaShareLoop$nrmse_val[1], 4)
+      nrmse_test_plot <- round(plotMediaShareLoop$nrmse_test[1], 4)
       decomp_rssd_plot <- round(plotMediaShareLoop$decomp.rssd[1], 4)
-      mape_lift_plot <- ifelse(!is.null(InputCollect$calibration_input),
-        round(plotMediaShareLoop$mape[1], 4), NA
-      )
-      errors <- paste0(
-        "R2 train: ", rsq_train_plot,
-        ", NRMSE = ", nrmse_plot,
-        ", DECOMP.RSSD = ", decomp_rssd_plot,
-        ifelse(!is.na(mape_lift_plot), paste0(", MAPE = ", mape_lift_plot), "")
-      )
+      mape_lift_plot <- ifelse(!is.null(InputCollect$calibration_input), round(plotMediaShareLoop$mape[1], 4), 0)
+      train_size <- round(plotMediaShareLoop$train_size[1], 4)
 
-      errors <- paste0(
-        "R2 train: ", rsq_train_plot,
-        ", NRMSE = ", nrmse_plot,
-        ", DECOMP.RSSD = ", decomp_rssd_plot,
-        ifelse(!is.na(mape_lift_plot), paste0(", MAPE = ", mape_lift_plot), "")
-      )
+      if (val) {
+        errors <- paste0(
+          "NRMSE: train = ", nrmse_train_plot, " | val = ", nrmse_val_plot, " | test = ", nrmse_test_plot,
+          "; [Adj.R2: train = ", rsq_train_plot, " | val = ", rsq_val_plot, " | test = ", rsq_test_plot, "]",
+          ";\nDECOMP.RSSD = ", decomp_rssd_plot,
+          "; MAPE = ", mape_lift_plot
+        )
+      } else {
+        errors <- paste0(
+          "NRMSE train = ", nrmse_train_plot,
+          "; [Adj.R2 train = ", rsq_train_plot, "]",
+          "; DECOMP.RSSD = ", decomp_rssd_plot,
+          "; MAPE = ", mape_lift_plot
+        )
+      }
 
       ## 1. Spend x effect share comparison
       plotMediaShareLoopBar <- temp[[sid]]$plot1data$plotMediaShareLoopBar
@@ -304,12 +326,12 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       ySecScale <- temp[[sid]]$plot1data$ySecScale
       plotMediaShareLoopBar$variable <- stringr::str_to_title(gsub("_", " ", plotMediaShareLoopBar$variable))
       type <- ifelse(InputCollect$dep_var_type == "conversion", "CPA", "ROI")
-      plotMediaShareLoopLine$type_colour <- type_colour <- "#0375B4"
+      plotMediaShareLoopLine$type_colour <- type_colour <- "#03396C"
       names(type_colour) <- "type_colour"
       p1 <- ggplot(plotMediaShareLoopBar, aes(x = .data$rn, y = .data$value, fill = .data$variable)) +
         geom_bar(stat = "identity", width = 0.5, position = "dodge") +
         geom_text(aes(y = 0, label = paste0(round(.data$value * 100, 1), "%")),
-          hjust = -.1, position = position_dodge(width = 0.5), fontface = "plain"
+          hjust = -.1, position = position_dodge(width = 0.5), fontface = "bold"
         ) +
         geom_line(
           data = plotMediaShareLoopLine, aes(
@@ -327,7 +349,7 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
           data = plotMediaShareLoopLine, aes(
             label = round(.data$value, 2), x = .data$rn, y = .data$value / ySecScale, group = 1
           ),
-          color = type_colour, fontface = "plain", inherit.aes = FALSE, hjust = -.4, size = 4
+          color = type_colour, fontface = "bold", inherit.aes = FALSE, hjust = -.4, size = 4
         ) +
         scale_y_percent() +
         coord_flip() +
@@ -349,7 +371,7 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
           ), stat = "identity") +
           scale_x_discrete("", breaks = levels(plotWaterfallLoop$rn), labels = plotWaterfallLoop$rn) +
           scale_y_percent() +
-          scale_fill_manual(values = c("Positive" = "#0375B4", "Negative" = "#B82601")) +
+          scale_fill_manual(values = c("Positive" = "#59B3D2", "Negative" = "#E5586E")) +
           theme_lares(legend = "top") +
           geom_text(mapping = aes(
             label = paste0(
@@ -357,7 +379,7 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
               "\n", round(.data$xDecompPerc * 100, 1), "%"
             ),
             y = rowSums(cbind(.data$end, .data$xDecompPerc / 2))
-          ), fontface = "plain", lineheight = .7) +
+          ), fontface = "bold", lineheight = .7) +
           coord_flip() +
           labs(
             title = "Response Decomposition Waterfall by Predictor",
@@ -368,12 +390,12 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       ## 3. Adstock rate
       if (InputCollect$adstock == "geometric") {
         dt_geometric <- temp[[sid]]$plot3data$dt_geometric
-        p3 <- ggplot(dt_geometric, aes(x = .data$channels, y = .data$thetas, fill = "salmon")) +
+        p3 <- ggplot(dt_geometric, aes(x = .data$channels, y = .data$thetas, fill = "coral")) +
           geom_bar(stat = "identity", width = 0.5) +
           theme_lares(legend = "none", grid = "Xx") +
           coord_flip() +
           geom_text(aes(label = formatNum(100 * .data$thetas, 1, pos = "%")),
-            hjust = -.1, position = position_dodge(width = 0.5), fontface = "plain"
+            hjust = -.1, position = position_dodge(width = 0.5), fontface = "bold"
           ) +
           scale_y_percent(limit = c(0, 1)) +
           labs(
@@ -444,7 +466,6 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
           variable = stringr::str_to_title(.data$variable),
           ds = as.Date(.data$ds, origin = "1970-01-01")
         )
-       rsq <- temp[[sid]]$plot5data$rsq
       p5 <- ggplot(
         xDecompVecPlotMelted,
         aes(x = .data$ds, y = .data$value, color = .data$variable)
@@ -455,9 +476,36 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
         guides(linetype = "none") +
         labs(
           title = "Actual vs. Predicted Response",
-           subtitle = paste("Train R2 =", round(rsq, 4)),
           x = "Date", y = "Response", color = NULL
         )
+      if (val) {
+        days <- sort(unique(p5$data$ds))
+        ndays <- length(days)
+        train_cut <- round(ndays * train_size)
+        val_cut <- train_cut + round(ndays * (1 - train_size) / 2)
+        p5 <- p5 +
+          # Train
+          geom_vline(xintercept = p5$data$ds[train_cut], colour = "#39638b", alpha = 0.8) +
+          geom_text(
+            x = p5$data$ds[train_cut], y = Inf, hjust = 0, vjust = 1.2,
+            angle = 270, colour = "#39638b", alpha = 0.5, size = 3.2,
+            label = sprintf("Train: %s", formatNum(100 * train_size, 1, pos = "%"))
+          ) +
+          # Validation
+          geom_vline(xintercept = p5$data$ds[val_cut], colour = "#39638b", alpha = 0.8) +
+          geom_text(
+            x = p5$data$ds[val_cut], y = Inf, hjust = 0, vjust = 1.2,
+            angle = 270, colour = "#39638b", alpha = 0.5, size = 3.2,
+            label = sprintf("Validation: %s", formatNum(100 * (1 - train_size) / 2, 1, pos = "%"))
+          ) +
+          # Test
+          geom_vline(xintercept = p5$data$ds[ndays], colour = "#39638b", alpha = 0.8) +
+          geom_text(
+            x = p5$data$ds[ndays], y = Inf, hjust = 0, vjust = 1.2,
+            angle = 270, colour = "#39638b", alpha = 0.5, size = 3.2,
+            label = sprintf("Test: %s", formatNum(100 * (1 - train_size) / 2, 1, pos = "%"))
+          )
+      }
 
       ## 6. Diagnostic: fitted vs residual
       xDecompVecPlot <- temp[[sid]]$plot6data$xDecompVecPlot
@@ -473,12 +521,12 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       p7 <- df_imme_caov %>%
         mutate(type = factor(.data$type, levels = c("Carryover", "Immediate"))) %>%
         ggplot(aes(
-          x = .data$percentage, y = .data$channels, fill = reorder(.data$type, as.integer(.data$type)),
+          x = .data$percentage, y = .data$rn, fill = reorder(.data$type, as.integer(.data$type)),
           label = paste0(round(.data$percentage * 100), "%")
         )) +
         geom_bar(stat = "identity", width = 0.5) +
         geom_text(position = position_stack(vjust = 0.5)) +
-        scale_fill_manual(values = c("Immediate" = "#0375B4", "Carryover" = "#B82601")) +
+        scale_fill_manual(values = c("Immediate" = "#59B3D2", "Carryover" = "coral")) +
         scale_x_percent() +
         theme_lares(legend = "top", grid = "Xx") +
         labs(
@@ -513,7 +561,7 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       rver <- utils::sessionInfo()$R.version
       onepagerTitle <- sprintf("One-pager for Model ID: %s", sid)
       onepagerCaption <- sprintf("dryad v%s [R-%s.%s]", ver, rver$major, rver$minor)
-      pg <- wrap_plots(p5, p2, p4, p1, p3, p7, p8, p6, ncol = 2) +
+      pg <- wrap_plots(p2, p5, p1, p8, p3, p7, p4, p6, ncol = 2) +
         plot_annotation(
           title = onepagerTitle, subtitle = errors,
           theme = theme_lares(background = "white"),
@@ -566,17 +614,27 @@ allocation_plots <- function(InputCollect, OutputCollect, dt_optimOut, select_mo
   )
 
   rsq_train_plot <- round(plotDT_scurveMeanResponse$rsq_train[1], 4)
-  nrmse_plot <- round(plotDT_scurveMeanResponse$nrmse[1], 4)
+  rsq_val_plot <- round(plotDT_scurveMeanResponse$rsq_val[1], 4)
+  rsq_test_plot <- round(plotDT_scurveMeanResponse$rsq_test[1], 4)
+  nrmse_train_plot <- round(plotDT_scurveMeanResponse$nrmse_train[1], 4)
+  nrmse_val_plot <- round(plotDT_scurveMeanResponse$nrmse_val[1], 4)
+  nrmse_test_plot <- round(plotDT_scurveMeanResponse$nrmse_test[1], 4)
   decomp_rssd_plot <- round(plotDT_scurveMeanResponse$decomp.rssd[1], 4)
   mape_lift_plot <- ifelse(!is.null(InputCollect$calibration_input),
     round(plotDT_scurveMeanResponse$mape[1], 4), NA
   )
-  errors <- paste0(
-    "R2 train: ", rsq_train_plot,
-    ", NRMSE = ", nrmse_plot,
-    ", DECOMP.RSSD = ", decomp_rssd_plot,
-    ifelse(!is.na(mape_lift_plot), paste0(", MAPE = ", mape_lift_plot), "")
-  )
+  if (OutputCollect$OutputModels$ts_validation) {
+    errors <- paste0(
+      "Adj.R2: train = ", rsq_train_plot, " | val = ", rsq_val_plot, " | test = ", rsq_test_plot,
+      " ### NRMSE: train = ", nrmse_train_plot, " | val = ", nrmse_val_plot, " | test = ", nrmse_test_plot,
+      " ### DECOMP.RSSD = ", decomp_rssd_plot, " ### MAPE = ", mape_lift_plot
+    )
+  } else {
+    errors <- paste0(
+      "Adj.R2 train = ", rsq_train_plot, " ### NRMSE train = ", nrmse_train_plot,
+      " ### DECOMP.RSSD = ", decomp_rssd_plot, " ### MAPE = ", mape_lift_plot
+    )
+  }
 
   # 1. Response comparison plot
   plotDT_resp <- select(dt_optimOut, .data$channels, .data$initResponseUnit, .data$optmResponseUnit) %>%
@@ -591,7 +649,7 @@ allocation_plots <- function(InputCollect, OutputCollect, dt_optimOut, select_mo
     geom_bar(stat = "identity", width = 0.5, position = position_dodge2(reverse = TRUE, padding = 0)) +
     scale_fill_brewer(palette = 3) +
     geom_text(aes(x = 0, label = formatNum(.data$response, 0), hjust = -0.1),
-      position = position_dodge2(width = 0.5, reverse = TRUE), fontface = "plain", show.legend = FALSE
+      position = position_dodge2(width = 0.5, reverse = TRUE), fontface = "bold", show.legend = FALSE
     ) +
     theme_lares(legend = "top") +
     scale_x_abbr() +
@@ -613,9 +671,9 @@ allocation_plots <- function(InputCollect, OutputCollect, dt_optimOut, select_mo
     geom_bar(stat = "identity", width = 0.5, position = position_dodge2(reverse = TRUE, padding = 0)) +
     scale_fill_brewer(palette = 3) +
     geom_text(aes(x = 0, label = formatNum(.data$spend_share * 100, 1, pos = "%"), hjust = -0.1),
-      position = position_dodge2(width = 0.5, reverse = TRUE), fontface = "plain", show.legend = FALSE
+      position = position_dodge2(width = 0.5, reverse = TRUE), fontface = "bold", show.legend = FALSE
     ) +
-    theme_lares(legend = "bottom") +
+    theme_lares(legend = "top") +
     scale_x_percent() +
     labs(
       title = "Initial vs. Optimised Budget Allocation",
@@ -851,7 +909,7 @@ refresh_plots <- function(InputCollectRF, OutputCollectRF, ReportCollect, export
         x = .data$variable,
         y = .data$roi_total / ySecScale
       ),
-      size = 3, na.rm = TRUE, hjust = -0.4, fontface = "plain",
+      size = 3, na.rm = TRUE, hjust = -0.4, fontface = "bold",
       position = position_dodge(width = 0.9)
     ) +
     scale_color_manual(values = dryad_palette()$fill) +
@@ -1009,4 +1067,88 @@ refresh_plots_json <- function(OutputCollectRF, json_file, export = TRUE) {
   }
 
   return(invisible(outputs))
+}
+
+
+####################################################################
+#' Generate Plots for Time-Series Validation
+#'
+#' Create a plot to visualize the convergence for each of the datasets
+#' when time-series validation is enabled when running \code{dryad_run()}.
+#' As a reference, the closer the test and validation convergence points are,
+#' the better, given the time-series wasn't overfitted.
+#'
+#' @rdname dryad_outputs
+#' @return Invisible list with \code{ggplot} plots.
+#' @export
+ts_validation <- function(OutputModels, quiet = FALSE, ...) {
+  if (!isTRUE(OutputModels$ts_validation)) {
+    if (!quiet) warning("Validation was not turned on when training these models. Set: 'ts_validation = TRUE'")
+    return(NULL)
+  }
+  resultHypParam <- bind_rows(
+    lapply(OutputModels[
+      which(names(OutputModels) %in% paste0("trial", seq(OutputModels$trials)))
+    ], function(x) x$resultCollect$resultHypParam)
+  ) %>%
+    group_by(.data$trial) %>%
+    mutate(i = row_number()) %>%
+    ungroup()
+
+  resultHypParamLong <- suppressWarnings(
+    resultHypParam %>%
+      select(.data$solID, .data$i, .data$trial, .data$train_size, starts_with("rsq_")) %>%
+      mutate(trial = paste("Trial", .data$trial)) %>%
+      tidyr::gather("dataset", "rsq", starts_with("rsq_")) %>%
+      bind_cols(select(resultHypParam, .data$solID, starts_with("nrmse_")) %>%
+        tidyr::gather("del", "nrmse", starts_with("nrmse_")) %>%
+        select(.data$nrmse)) %>%
+      # group_by(.data$trial, .data$dataset) %>%
+      mutate(
+        rsq = lares::winsorize(.data$rsq, thresh = c(0.01, 0.99)),
+        nrmse = lares::winsorize(.data$nrmse, thresh = c(0.00, 0.99)),
+        dataset = gsub("rsq_", "", .data$dataset)
+      ) %>%
+      ungroup()
+  )
+
+  pIters <- resultHypParam %>%
+    ggplot(aes(x = .data$i, y = .data$train_size)) +
+    geom_point(fill = "black", alpha = 0.5, size = 1.2, pch = 23) +
+    # geom_smooth() +
+    labs(y = "Train Size", x = "Iteration") +
+    scale_y_percent() +
+    theme_lares() +
+    scale_x_abbr()
+
+  pRSQ <- ggplot(resultHypParamLong, aes(
+    x = .data$i, y = .data$rsq,
+    colour = .data$dataset,
+    group = as.character(.data$trial)
+  )) +
+    geom_point(alpha = 0.5, size = 0.9) +
+    facet_grid(.data$trial ~ .) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(y = "Adjusted R2 [1% Winsorized]", x = "Iteration", colour = "Dataset") +
+    theme_lares(legend = "top", pal = 2) +
+    scale_x_abbr()
+
+  pNRMSE <- ggplot(resultHypParamLong, aes(
+    x = .data$i, y = .data$nrmse,
+    colour = .data$dataset
+    # group = as.character(.data$trial)
+  )) +
+    geom_point(alpha = 0.2, size = 0.9) +
+    geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs")) +
+    facet_grid(.data$trial ~ .) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(y = "NRMSE [Upper 1% Winsorized]", x = "Iteration", colour = "Dataset") +
+    theme_lares(legend = "top", pal = 2) +
+    scale_x_abbr()
+
+  pw <- (pNRMSE / pIters) +
+    patchwork::plot_annotation(title = "Time-series validation & Convergence") +
+    patchwork::plot_layout(heights = c(2, 1), guides = "collect") &
+    theme_lares(legend = "top")
+  return(pw)
 }

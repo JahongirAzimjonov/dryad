@@ -4,23 +4,29 @@
 # LICENSE file in the root directory of this source tree.
 
 # Calculate R-squared
-get_rsq <- function(true, predicted, p = NULL, df.int = NULL) {
+get_rsq <- function(true, predicted, p = NULL, df.int = NULL, n_train = NULL) {
   sse <- sum((predicted - true)^2)
   sst <- sum((true - mean(true))^2)
-  rsq <- 1 - sse / sst
+  rsq <- 1 - sse / sst # rsq interpreted as variance explained
+  rsq_out <- rsq
   if (!is.null(p) && !is.null(df.int)) {
-    n <- length(true)
+    if (!is.null(n_train)) {
+      n <- n_train # for oos dataset, use n from train set for adj. rsq
+    } else {
+      n <- length(true)
+    }
     rdf <- n - p - 1
-    rsq <- 1 - (1 - rsq) * ((n - df.int) / rdf)
+    rsq_adj <- 1 - (1 - rsq) * ((n - df.int) / rdf)
+    rsq_out <- rsq_adj
   }
-  return(rsq)
+  return(rsq_out)
 }
 
 # dryad colors
 dryad_palette <- function() {
   pal <- c(
-"#69767c", "#b6d957", "#5cbae5", "#fac364", "#9ea8ad", "#1b7eac",
-"#759422", "#dd8e07", "#abdbf2", "#d7eaa2", "#fde5bd", "#d5dadc"
+    "#21130d", "#351904", "#543005", "#8C510A", "#BF812D", "#DFC27D", "#F6E8C3",
+    "#F5F5F5", "#C7EAE5", "#80CDC1", "#35978F", "#01665E", "#043F43", "#04272D"
   )
   repeated <- 4
   list(
@@ -43,7 +49,13 @@ flatten_hyps <- function(x) {
 }
 
 ####################################################################
-#' Update Version
+#' Update dryad Version
+#'
+#' Update dryad version from
+#' \href{https://github.com/facebookexperimental/dryad}{Github repository}
+#' for latest "dev" version or from
+#' \href{https://cran.r-project.org/web/packages/dryad/index.html}{CRAN}
+#' for latest "stable" version.
 #'
 #' @param dev Boolean. Dev version? If not, CRAN version.
 #' @param ... Parameters to pass to \code{remotes::install_github}
@@ -54,7 +66,7 @@ dryad_update <- function(dev = TRUE, ...) {
   if (dev) {
     try_require("remotes")
     # options(timeout = 400)
-    install_github(repo = "hemicontinuous/dryad/R", ...)
+    install_github(repo = "facebookexperimental/dryad/R", ...)
   } else {
     utils::install.packages("dryad", ...)
   }

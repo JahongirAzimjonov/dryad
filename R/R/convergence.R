@@ -42,62 +42,57 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
   stopifnot(n_cuts > min(c(sd_qtref, med_lowb)) + 1)
 
   # Gather all trials
-  get_lists <- as.logical(grepl("trial", names(OutputModels)) * unlist(lapply(OutputModels, is.list)))
-  OutModels <- OutputModels[get_lists]
-  for (i in seq_along(OutModels)) {
-    if (i == 1) df <- data.frame()
-    temp <- OutModels[[i]]$resultCollect$resultHypParam %>% mutate(trial = i)
-    df <- rbind(df, temp)
-  }
+  get_trials <- which(names(OutputModels) %in% paste0("trial", seq(OutputModels$trials)))
+  df <- bind_rows(lapply(OutputModels[get_trials], function(x) x$resultCollect$resultHypParam))
   calibrated <- isTRUE(sum(df$mape) > 0)
 
   # Calculate deciles
   dt_objfunc_cvg <- tidyr::gather(df, "error_type", "value", any_of(c("nrmse", "decomp.rssd", "mape"))) %>%
-    select(.data$ElapsedAccum, .data$trial, .data$error_type, .data$value) %>%
-    arrange(.data$trial, .data$ElapsedAccum) %>%
-    filter(.data$value > 0, is.finite(.data$value)) %>%
-    mutate(error_type = toupper(.data$error_type)) %>%
-    group_by(.data$error_type, .data$trial) %>%
+    select(.dryad$ElapsedAccum, .dryad$trial, .dryad$error_type, .dryad$value) %>%
+    arrange(.dryad$trial, .dryad$ElapsedAccum) %>%
+    filter(.dryad$value > 0, is.finite(.dryad$value)) %>%
+    mutate(error_type = toupper(.dryad$error_type)) %>%
+    group_by(.dryad$error_type, .dryad$trial) %>%
     mutate(iter = row_number()) %>%
     ungroup() %>%
     mutate(cuts = cut(
-      .data$iter,
-      breaks = seq(0, max(.data$iter), length.out = n_cuts + 1),
-      labels = round(seq(max(.data$iter) / n_cuts, max(.data$iter), length.out = n_cuts)),
+      .dryad$iter,
+      breaks = seq(0, max(.dryad$iter), length.out = n_cuts + 1),
+      labels = round(seq(max(.dryad$iter) / n_cuts, max(.dryad$iter), length.out = n_cuts)),
       include.lowest = TRUE, ordered_result = TRUE, dig.lab = 6
     ))
 
   # Calculate standard deviations and absolute medians on each cut
   errors <- dt_objfunc_cvg %>%
-    group_by(.data$error_type, .data$cuts) %>%
+    group_by(.dryad$error_type, .dryad$cuts) %>%
     summarise(
       n = n(),
-      median = median(.data$value),
-      std = sd(.data$value),
+      median = median(.dryad$value),
+      std = sd(.dryad$value),
       .groups = "drop"
     ) %>%
-    group_by(.data$error_type) %>%
+    group_by(.dryad$error_type) %>%
     mutate(
-      med_var_P = abs(round(100 * (.data$median - lag(.data$median)) / .data$median, 2))
+      med_var_P = abs(round(100 * (.dryad$median - lag(.dryad$median)) / .dryad$median, 2))
     ) %>%
-    group_by(.data$error_type) %>%
+    group_by(.dryad$error_type) %>%
     mutate(
-      first_med = abs(dplyr::first(.data$median)),
-      first_med_avg = abs(mean(.data$median[1:sd_qtref])),
-      last_med = abs(dplyr::last(.data$median)),
-      first_sd = dplyr::first(.data$std),
-      first_sd_avg = mean(.data$std[1:sd_qtref]),
-      last_sd = dplyr::last(.data$std)
+      first_med = abs(dplyr::first(.dryad$median)),
+      first_med_avg = abs(mean(.dryad$median[1:sd_qtref])),
+      last_med = abs(dplyr::last(.dryad$median)),
+      first_sd = dplyr::first(.dryad$std),
+      first_sd_avg = mean(.dryad$std[1:sd_qtref]),
+      last_sd = dplyr::last(.dryad$std)
     ) %>%
     mutate(
-      med_thres = abs(.data$first_med - med_lowb * .data$first_sd_avg),
-      flag_med = abs(.data$median) < .data$med_thres,
-      flag_sd = .data$std < .data$first_sd_avg
+      med_thres = abs(.dryad$first_med - med_lowb * .dryad$first_sd_avg),
+      flag_med = abs(.dryad$median) < .dryad$med_thres,
+      flag_sd = .dryad$std < .dryad$first_sd_avg
     )
 
   conv_msg <- NULL
   for (obj_fun in unique(errors$error_type)) {
-    temp.df <- filter(errors, .data$error_type == obj_fun) %>%
+    temp.df <- filter(errors, .dryad$error_type == obj_fun) %>%
       mutate(median = signif(median, 2))
     last.qt <- tail(temp.df, 1)
     greater <- ">" # intToUtf8(8814)
@@ -145,14 +140,14 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
   )
 
   moo_distrb_plot <- dt_objfunc_cvg %>%
-    mutate(id = as.integer(.data$cuts)) %>%
-    mutate(cuts = factor(.data$cuts, levels = rev(levels(.data$cuts)))) %>%
-    ggplot(aes(x = .data$value, y = .data$cuts, fill = -.data$id)) +
+    mutate(id = as.integer(.dryad$cuts)) %>%
+    mutate(cuts = factor(.dryad$cuts, levels = rev(levels(.dryad$cuts)))) %>%
+    ggplot(aes(x = .dryad$value, y = .dryad$cuts, fill = -.dryad$id)) +
     ggridges::geom_density_ridges(
       scale = 2.5, col = "white", quantile_lines = TRUE, quantiles = 2, alpha = 0.7
     ) +
-    facet_grid(. ~ .data$error_type, scales = "free") +
-    scale_fill_distiller(palette = "OrRd") +
+    facet_grid(. ~ .dryad$error_type, scales = "free") +
+    scale_fill_distiller(palette = "GnBu") +
     guides(fill = "none") +
     theme_lares() +
     labs(
@@ -163,9 +158,9 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
     )
 
   moo_cloud_plot <- ggplot(df, aes(
-    x = .data$nrmse, y = .data$decomp.rssd, colour = .data$ElapsedAccum
+    x = .dryad$nrmse, y = .dryad$decomp.rssd, colour = .dryad$ElapsedAccum
   )) +
-    scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    scale_colour_gradient(low = "skyblue", high = "navyblue") +
     labs(
       title = ifelse(!calibrated, "Multi-objective evolutionary performance",
         "Multi-objective evolutionary performance with calibration"
@@ -182,7 +177,7 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
 
   if (calibrated) {
     moo_cloud_plot <- moo_cloud_plot +
-      geom_point(data = df, aes(size = .data$mape, alpha = 1 - .data$mape)) +
+      geom_point(dryad = df, aes(size = .dryad$mape, alpha = 1 - .dryad$mape)) +
       guides(alpha = "none")
   } else {
     moo_cloud_plot <- moo_cloud_plot + geom_point()
@@ -198,4 +193,38 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
   attr(cvg_out, "med_lowb") <- med_lowb
 
   return(invisible(cvg_out))
+}
+
+test_cvg <- function() {
+  # Experiment with gamma distribution fitting
+  gamma_mle <- function(params, x) {
+    gamma_shape <- params[[1]]
+    gamma_scale <- params[[2]]
+    # Negative log-likelihood
+    return(-sum(dgamma(x, shape = gamma_shape, scale = gamma_scale, log = TRUE)))
+  }
+  f_geo <- function(a, r, n) {
+    for (i in 2:n) a[i] <- a[i - 1] * r
+    return(a)
+  }
+  seq_nrmse <- f_geo(5, 0.7, 100)
+  df_nrmse <- dryad.frame(x = 1:100, y = seq_nrmse, type = "true")
+  mod_gamma <- nloptr(
+    x0 = c(1, 1), eval_f = gamma_mle, lb = c(0, 0),
+    x = seq_nrmse,
+    opts = list(algorithm = "NLOPT_LN_SBPLX", maxeval = 1e5)
+  )
+  gamma_params <- mod_gamma$solution
+  seq_nrmse_gam <- 1 / dgamma(seq_nrmse, shape = gamma_params[[1]], scale = gamma_params[[2]])
+  seq_nrmse_gam <- seq_nrmse_gam / (max(seq_nrmse_gam) - min(seq_nrmse_gam))
+  seq_nrmse_gam <- max(seq_nrmse) * seq_nrmse_gam
+  range(seq_nrmse_gam)
+  range(seq_nrmse)
+  df_nrmse_gam <- dryad.frame(x = 1:100, y = seq_nrmse_gam, type = "pred")
+  df_nrmse <- bind_rows(df_nrmse, df_nrmse_gam)
+  p <- ggplot(df_nrmse, aes(.dryad$x, .dryad$y, color = .dryad$type)) +
+    geom_line()
+  return(p)
+  # g_low = qgamma(0.025, shape=gamma_params[[1]], scale= gamma_params[[2]])
+  # g_up = qgamma(0.975, shape=gamma_params[[1]], scale= gamma_params[[2]])
 }
