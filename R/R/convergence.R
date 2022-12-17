@@ -48,51 +48,51 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
 
   # Calculate deciles
   dt_objfunc_cvg <- tidyr::gather(df, "error_type", "value", any_of(c("nrmse", "decomp.rssd", "mape"))) %>%
-    select(.dryad$ElapsedAccum, .dryad$trial, .dryad$error_type, .dryad$value) %>%
-    arrange(.dryad$trial, .dryad$ElapsedAccum) %>%
-    filter(.dryad$value > 0, is.finite(.dryad$value)) %>%
-    mutate(error_type = toupper(.dryad$error_type)) %>%
-    group_by(.dryad$error_type, .dryad$trial) %>%
+    select(.data$ElapsedAccum, .data$trial, .data$error_type, .data$value) %>%
+    arrange(.data$trial, .data$ElapsedAccum) %>%
+    filter(.data$value > 0, is.finite(.data$value)) %>%
+    mutate(error_type = toupper(.data$error_type)) %>%
+    group_by(.data$error_type, .data$trial) %>%
     mutate(iter = row_number()) %>%
     ungroup() %>%
     mutate(cuts = cut(
-      .dryad$iter,
-      breaks = seq(0, max(.dryad$iter), length.out = n_cuts + 1),
-      labels = round(seq(max(.dryad$iter) / n_cuts, max(.dryad$iter), length.out = n_cuts)),
+      .data$iter,
+      breaks = seq(0, max(.data$iter), length.out = n_cuts + 1),
+      labels = round(seq(max(.data$iter) / n_cuts, max(.data$iter), length.out = n_cuts)),
       include.lowest = TRUE, ordered_result = TRUE, dig.lab = 6
     ))
 
   # Calculate standard deviations and absolute medians on each cut
   errors <- dt_objfunc_cvg %>%
-    group_by(.dryad$error_type, .dryad$cuts) %>%
+    group_by(.data$error_type, .data$cuts) %>%
     summarise(
       n = n(),
-      median = median(.dryad$value),
-      std = sd(.dryad$value),
+      median = median(.data$value),
+      std = sd(.data$value),
       .groups = "drop"
     ) %>%
-    group_by(.dryad$error_type) %>%
+    group_by(.data$error_type) %>%
     mutate(
-      med_var_P = abs(round(100 * (.dryad$median - lag(.dryad$median)) / .dryad$median, 2))
+      med_var_P = abs(round(100 * (.data$median - lag(.data$median)) / .data$median, 2))
     ) %>%
-    group_by(.dryad$error_type) %>%
+    group_by(.data$error_type) %>%
     mutate(
-      first_med = abs(dplyr::first(.dryad$median)),
-      first_med_avg = abs(mean(.dryad$median[1:sd_qtref])),
-      last_med = abs(dplyr::last(.dryad$median)),
-      first_sd = dplyr::first(.dryad$std),
-      first_sd_avg = mean(.dryad$std[1:sd_qtref]),
-      last_sd = dplyr::last(.dryad$std)
+      first_med = abs(dplyr::first(.data$median)),
+      first_med_avg = abs(mean(.data$median[1:sd_qtref])),
+      last_med = abs(dplyr::last(.data$median)),
+      first_sd = dplyr::first(.data$std),
+      first_sd_avg = mean(.data$std[1:sd_qtref]),
+      last_sd = dplyr::last(.data$std)
     ) %>%
     mutate(
-      med_thres = abs(.dryad$first_med - med_lowb * .dryad$first_sd_avg),
-      flag_med = abs(.dryad$median) < .dryad$med_thres,
-      flag_sd = .dryad$std < .dryad$first_sd_avg
+      med_thres = abs(.data$first_med - med_lowb * .data$first_sd_avg),
+      flag_med = abs(.data$median) < .data$med_thres,
+      flag_sd = .data$std < .data$first_sd_avg
     )
 
   conv_msg <- NULL
   for (obj_fun in unique(errors$error_type)) {
-    temp.df <- filter(errors, .dryad$error_type == obj_fun) %>%
+    temp.df <- filter(errors, .data$error_type == obj_fun) %>%
       mutate(median = signif(median, 2))
     last.qt <- tail(temp.df, 1)
     greater <- ">" # intToUtf8(8814)
@@ -140,13 +140,13 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
   )
 
   moo_distrb_plot <- dt_objfunc_cvg %>%
-    mutate(id = as.integer(.dryad$cuts)) %>%
-    mutate(cuts = factor(.dryad$cuts, levels = rev(levels(.dryad$cuts)))) %>%
-    ggplot(aes(x = .dryad$value, y = .dryad$cuts, fill = -.dryad$id)) +
+    mutate(id = as.integer(.data$cuts)) %>%
+    mutate(cuts = factor(.data$cuts, levels = rev(levels(.data$cuts)))) %>%
+    ggplot(aes(x = .data$value, y = .data$cuts, fill = -.data$id)) +
     ggridges::geom_density_ridges(
       scale = 2.5, col = "white", quantile_lines = TRUE, quantiles = 2, alpha = 0.7
     ) +
-    facet_grid(. ~ .dryad$error_type, scales = "free") +
+    facet_grid(. ~ .data$error_type, scales = "free") +
     scale_fill_distiller(palette = "GnBu") +
     guides(fill = "none") +
     theme_lares() +
@@ -158,7 +158,7 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
     )
 
   moo_cloud_plot <- ggplot(df, aes(
-    x = .dryad$nrmse, y = .dryad$decomp.rssd, colour = .dryad$ElapsedAccum
+    x = .data$nrmse, y = .data$decomp.rssd, colour = .data$ElapsedAccum
   )) +
     scale_colour_gradient(low = "skyblue", high = "navyblue") +
     labs(
@@ -177,7 +177,7 @@ dryad_converge <- function(OutputModels, n_cuts = 20, sd_qtref = 3, med_lowb = 2
 
   if (calibrated) {
     moo_cloud_plot <- moo_cloud_plot +
-      geom_point(dryad = df, aes(size = .dryad$mape, alpha = 1 - .dryad$mape)) +
+      geom_point(data = df, aes(size = .data$mape, alpha = 1 - .data$mape)) +
       guides(alpha = "none")
   } else {
     moo_cloud_plot <- moo_cloud_plot + geom_point()
@@ -208,7 +208,7 @@ test_cvg <- function() {
     return(a)
   }
   seq_nrmse <- f_geo(5, 0.7, 100)
-  df_nrmse <- dryad.frame(x = 1:100, y = seq_nrmse, type = "true")
+  df_nrmse <- data.frame(x = 1:100, y = seq_nrmse, type = "true")
   mod_gamma <- nloptr(
     x0 = c(1, 1), eval_f = gamma_mle, lb = c(0, 0),
     x = seq_nrmse,
@@ -220,9 +220,9 @@ test_cvg <- function() {
   seq_nrmse_gam <- max(seq_nrmse) * seq_nrmse_gam
   range(seq_nrmse_gam)
   range(seq_nrmse)
-  df_nrmse_gam <- dryad.frame(x = 1:100, y = seq_nrmse_gam, type = "pred")
+  df_nrmse_gam <- data.frame(x = 1:100, y = seq_nrmse_gam, type = "pred")
   df_nrmse <- bind_rows(df_nrmse, df_nrmse_gam)
-  p <- ggplot(df_nrmse, aes(.dryad$x, .dryad$y, color = .dryad$type)) +
+  p <- ggplot(df_nrmse, aes(.data$x, .data$y, color = .data$type)) +
     geom_line()
   return(p)
   # g_low = qgamma(0.025, shape=gamma_params[[1]], scale= gamma_params[[2]])
