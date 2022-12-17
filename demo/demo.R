@@ -124,3 +124,5 @@ OutputModels$convergence$moo_cloud_plot
 # uncomment next line to print results
 # print(OutputCollect)
 
+### DIAGNOSTICS
+run_diagnostics(mydata)
