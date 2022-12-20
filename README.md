@@ -7,7 +7,7 @@ Please note that the project is in beta phase.
 
 ## Introduction
 
- **What is dryad MMM**: dryad MMM is a fork of Robyn, the semi-automated and open-sourced Marketing Mix Modeling (MMM) package from Meta Marketing Science. 
+ **What is dryad MMM**: dryad is a fork of Robyn, the semi-automated and open-sourced Marketing Mix Modeling (MMM) package from Meta Marketing Science. 
 Robyn uses various machine learning techniques (Ridge regression, multi-objective evolutionary algorithm for hyperparameter optimization, time-series decomposition for trend and season, gradient-based optimization for budget allocation etc.) to define media channel efficiency and effectivity, explore adstock rates and saturation curves. 
 
 Dryad extends Robyn by performing bootstrapped ridge regressions for the same models to estimate penalized (added bias to reduce variance) least squares (PLS) model coefficients, which are more optimal, stable estimates that are more likely to validate in new samples.
