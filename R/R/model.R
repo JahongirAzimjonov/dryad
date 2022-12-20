@@ -14,14 +14,6 @@
 #' @inheritParams dryad_inputs
 #' @param dt_hyper_fixed data.frame. Only provide when loading old model results.
 #' It consumes hyperparameters from saved csv \code{pareto_hyperparameters.csv}.
-#' @param ts_validation Boolean. When set to \code{TRUE}, dryad will split data
-#' by test, train, and validation partitions to validate the time series. By
-#' default the "train_size" range is set to \code{c(0.5, 0.8)}, but it can be
-#' customized or set to a fixed value using the hyperparameters input. For example,
-#' if \code{train_size = 0.7}, validation size and test size will both be 0.15
-#' and 0.15. When \code{ts_validation = FALSE}, nrmse_train is the
-#' objective function; when \code{ts_validation = TRUE}, nrmse_val is the objective
-#' function.
 #' @param add_penalty_factor Boolean. Add penalty factor hyperparameters to
 #' glmnet's penalty.factor to be optimized by nevergrad. Use with caution, because
 #' this feature might add too much hyperparameter space and probably requires
@@ -63,7 +55,6 @@
 dryad_run <- function(InputCollect = NULL,
                       dt_hyper_fixed = NULL,
                       json_file = NULL,
-                      ts_validation = FALSE,
                       add_penalty_factor = FALSE,
                       refresh = FALSE,
                       seed = 123L,
@@ -75,6 +66,8 @@ dryad_run <- function(InputCollect = NULL,
                       nevergrad_algo = "TwoPointsDE",
                       intercept_sign = "non_negative",
                       lambda_control = NULL,
+                      num_perm=NULL,
+                      ci.level=NULL,
                       ...) {
   t0 <- Sys.time()
 
@@ -110,8 +103,7 @@ dryad_run <- function(InputCollect = NULL,
     for (i in seq_along(InputCollect)) assign(names(InputCollect)[i], InputCollect[[i]])
   }
 
-  # Keep in mind: https://www.jottr.org/2022/12/05/avoid-detectcores/
-  max_cores <- max(1L, parallel::detectCores(), na.rm = TRUE)
+  max_cores <- parallel::detectCores()
   if (is.null(cores)) {
     cores <- max_cores - 1 # It's recommended to always leave at least one core free
   } else if (cores > max_cores) {
@@ -131,7 +123,6 @@ dryad_run <- function(InputCollect = NULL,
   hyper_collect <- hyper_collector(
     InputCollect,
     hyper_in = InputCollect$hyperparameters,
-    ts_validation = ts_validation,
     add_penalty_factor = add_penalty_factor,
     dt_hyper_fixed = dt_hyper_fixed,
     cores = cores
@@ -145,9 +136,9 @@ dryad_run <- function(InputCollect = NULL,
     InputCollect, hyper_collect,
     cores, iterations, trials, intercept_sign, nevergrad_algo,
     dt_hyper_fixed = dt_hyper_fixed,
-    ts_validation = ts_validation,
     add_penalty_factor = add_penalty_factor,
-    refresh, seed, quiet
+    refresh, seed, quiet,
+    num_perm=num_perm,ci.level=ci.level
   )
 
   attr(OutputModels, "hyper_fixed") <- hyper_collect$all_fixed
@@ -160,7 +151,6 @@ dryad_run <- function(InputCollect = NULL,
     OutputModels$trials <- trials
     OutputModels$intercept_sign <- intercept_sign
     OutputModels$nevergrad_algo <- nevergrad_algo
-    OutputModels$ts_validation <- ts_validation
     OutputModels$add_penalty_factor <- add_penalty_factor
     OutputModels$hyper_updated <- hyper_collect$hyper_list_all
   }
@@ -179,13 +169,8 @@ dryad_run <- function(InputCollect = NULL,
   # Check convergence when more than 1 iteration
   if (!hyper_collect$all_fixed) {
     output[["convergence"]] <- dryad_converge(OutputModels, ...)
-    output[["ts_validation_plot"]] <- ts_validation(OutputModels, ...)
   } else {
-    if ("solID" %in% names(dt_hyper_fixed)) {
-      output[["selectID"]] <- dt_hyper_fixed$solID
-    } else {
-      output[["selectID"]] <- OutputModels$trial1$resultCollect$resultHypParam$solID
-    }
+    output[["selectID"]] <- OutputModels$trial1$resultCollect$resultHypParam$solID
     if (!quiet) message("Successfully recreated model ID: ", output$selectID)
   }
 
@@ -219,7 +204,6 @@ print.dryad_models <- function(x, ...) {
 
   Nevergrad Algo: {x$nevergrad_algo}
   Intercept sign: {x$intercept_sign}
-  Time-series validation: {x$ts_validation}
   Penalty factor: {x$add_penalty_factor}
   Refresh: {isTRUE(attr(x, 'refresh'))}
 
@@ -272,10 +256,11 @@ dryad_train <- function(InputCollect, hyper_collect,
                         cores, iterations, trials,
                         intercept_sign, nevergrad_algo,
                         dt_hyper_fixed = NULL,
-                        ts_validation = TRUE,
                         add_penalty_factor = FALSE,
                         refresh = FALSE, seed = 123,
-                        quiet = FALSE) {
+                        quiet = FALSE,
+                        num_perm,ci.level
+                        ) {
   hyper_fixed <- hyper_collect$all_fixed
 
   if (hyper_fixed) {
@@ -288,7 +273,6 @@ dryad_train <- function(InputCollect, hyper_collect,
       nevergrad_algo = nevergrad_algo,
       intercept_sign = intercept_sign,
       dt_hyper_fixed = dt_hyper_fixed,
-      ts_validation = ts_validation,
       seed = seed,
       quiet = quiet
     )
@@ -326,12 +310,13 @@ dryad_train <- function(InputCollect, hyper_collect,
         cores = cores,
         nevergrad_algo = nevergrad_algo,
         intercept_sign = intercept_sign,
-        ts_validation = ts_validation,
         add_penalty_factor = add_penalty_factor,
         refresh = refresh,
         trial = ngt,
         seed = seed + ngt,
-        quiet = quiet
+        quiet = quiet,
+        num_perm = num_perm,
+        ci.level = ci.level
       )
       check_coef0 <- any(model_output$resultCollect$decompSpendDist$decomp.rssd == Inf)
       if (check_coef0) {
@@ -381,14 +366,14 @@ dryad_mmm <- function(InputCollect,
                       cores,
                       nevergrad_algo,
                       intercept_sign,
-                      ts_validation = TRUE,
                       add_penalty_factor = FALSE,
                       dt_hyper_fixed = NULL,
                       # lambda_fixed = NULL,
                       refresh = FALSE,
                       trial = 1L,
                       seed = 123L,
-                      quiet = FALSE) {
+                      quiet = FALSE,
+                      num_perm,ci.level) {
   if (reticulate::py_module_available("nevergrad")) {
     ng <- reticulate::import("nevergrad", delay_load = TRUE)
     if (is.integer(seed)) {
@@ -445,7 +430,6 @@ dryad_mmm <- function(InputCollect,
     all_media <- InputCollect$all_media
     calibration_input <- InputCollect$calibration_input
     optimizer_name <- nevergrad_algo
-    ts_validation <- ts_validation
     add_penalty_factor <- add_penalty_factor
     intercept_sign <- intercept_sign
     i <- NULL # For parallel iterations (globalVar)
@@ -467,7 +451,7 @@ dryad_mmm <- function(InputCollect,
   # When not refreshing, dt_spendShareRF = dt_spendShare
   refreshAddedStartWhich <- which(dt_modRollWind$ds == refreshAddedStart)
   temp <- select(dt_inputTrain, all_of(paid_media_spends)) %>%
-    slice(refreshAddedStartWhich:rollingWindowLength)
+          slice(refreshAddedStartWhich:rollingWindowLength)
   dt_spendShareRF <- data.frame(
     rn = paid_media_spends,
     total_spend = unlist(summarise_all(temp, sum)),
@@ -541,7 +525,7 @@ dryad_mmm <- function(InputCollect,
               for (hypNameLoop in hyper_bound_list_updated_name) {
                 index <- which(hypNameLoop == hyper_bound_list_updated_name)
                 channelBound <- unlist(hyper_bound_list_updated[hypNameLoop])
-                hyppar_value <- signif(nevergrad_hp_val[[co]][index], 6)
+                hyppar_value <- nevergrad_hp_val[[co]][index]
                 if (length(channelBound) > 1) {
                   hypParamSamNG[hypNameLoop] <- qunif(hyppar_value, min(channelBound), max(channelBound))
                 } else {
@@ -603,6 +587,13 @@ dryad_mmm <- function(InputCollect,
               mediaCarryover[[v]] <- m_carryover
               mediaVecCum[[v]] <- x_list$thetaVecCum
 
+              # data.frame(id = rep(seq_along(m), 2)) %>%
+              #   mutate(value = c(m, m_adstocked),
+              #          type = c(rep("raw", length(m)), rep("adstocked", length(m)))) %>%
+              #   filter(id < 100) %>%
+              #   ggplot(aes(x = id, y = value, colour = type)) +
+              #   geom_line()
+
               ################################################
               ## 2. Saturation (only window data)
               # Saturated response = Immediate response + carryover response
@@ -641,34 +632,20 @@ dryad_mmm <- function(InputCollect,
             dt_saturatedCarryover[is.na(dt_saturatedCarryover)] <- 0
 
             #####################################
-            #### Split train & test and prepare data for modelling
+            #### Split and prepare data for modelling
 
-            dt_window <- dt_modSaturated
+            dt_train <- dt_modSaturated
 
             ## Contrast matrix because glmnet does not treat categorical variables (one hot encoding)
-            y_window <- dt_window$dep_var
-            x_window <- as.matrix(lares::ohse(select(dt_window, -.data$dep_var)))
-            y_train <- y_val <- y_test <- y_window
-            x_train <- x_val <- x_test <- x_window
-
-            ## Split train, test, and validation sets
-            train_size <- hypParamSam[, "train_size"][[1]]
-            val_size <- test_size <- (1 - train_size) / 2
-            if (train_size < 1) {
-              train_size_index <- floor(quantile(seq(nrow(dt_window)), train_size))
-              val_size_index <- train_size_index + floor(val_size * nrow(dt_window))
-              y_train <- y_window[1:train_size_index]
-              y_val <- y_window[(train_size_index + 1):val_size_index]
-              y_test <- y_window[(val_size_index + 1):length(y_window)]
-              x_train <- x_window[1:train_size_index, ]
-              x_val <- x_window[(train_size_index + 1):val_size_index, ]
-              x_test <- x_window[(val_size_index + 1):length(y_window), ]
+            y_train <- dt_train$dep_var
+            if (length(which(grepl("^[0-9]", dt_train))) > 1) {
+              x_train <- model.matrix(dep_var ~ ., dt_train)[, -1]
             } else {
-              y_val <- y_test <- x_val <- x_test <- NULL
+              x_train <- as.matrix(dt_train[, -1])
             }
 
             ## Define and set sign control
-            dt_sign <- select(dt_window, -.data$dep_var)
+            dt_sign <- select(dt_modSaturated, -.data$dep_var)
             x_sign <- c(prophet_signs, context_signs, paid_media_signs, organic_signs)
             names(x_sign) <- c(prophet_vars, context_vars, paid_media_spends, organic_vars)
             check_factor <- unlist(lapply(dt_sign, is.factor))
@@ -736,12 +713,11 @@ dryad_mmm <- function(InputCollect,
             ## If no lift calibration, refit using best lambda
             mod_out <- model_refit(
               x_train, y_train,
-              x_val, y_val,
-              x_test, y_test,
               lambda = lambda_scaled,
               lower.limits = lower.limits,
               upper.limits = upper.limits,
-              intercept_sign = intercept_sign
+              intercept_sign = intercept_sign,
+              num_perm,ci.level
             )
             decompCollect <- model_decomp(
               coefs = mod_out$coefs,
@@ -753,7 +729,7 @@ dryad_mmm <- function(InputCollect,
               dt_modRollWind = dt_modRollWind,
               refreshAddedStart = refreshAddedStart
             )
-            nrmse <- ifelse(ts_validation, mod_out$nrmse_val, mod_out$nrmse_train)
+            nrmse <- mod_out$nrmse_train
             mape <- 0
             df.int <- mod_out$df.int
 
@@ -830,14 +806,9 @@ dryad_mmm <- function(InputCollect,
             #### Collect Multi-Objective Errors and Iteration Results
             resultCollect <- list()
 
-            # Auxiliary dynamic vector
-            common <- data.frame(
+            # Auxiliary vector
+            common <- c(
               rsq_train = mod_out$rsq_train,
-              rsq_val = mod_out$rsq_val,
-              rsq_test = mod_out$rsq_test,
-              nrmse_train = mod_out$nrmse_train,
-              nrmse_val = mod_out$nrmse_val,
-              nrmse_test = mod_out$nrmse_test,
               nrmse = nrmse,
               decomp.rssd = decomp.rssd,
               mape = mape,
@@ -845,24 +816,21 @@ dryad_mmm <- function(InputCollect,
               lambda_hp = lambda_hp,
               lambda_max = lambda_max,
               lambda_min_ratio = lambda_min_ratio,
-              solID = paste(trial, lng, i, sep = "_"),
-              trial = trial,
-              iterNG = lng,
+              #inference_matrix= mod_out$Inference_matrix,
               iterPar = i,
+              iterNG = lng,
               df.int = df.int
             )
-            total_common <- ncol(common)
-            split_common <- which(colnames(common) == "lambda_min_ratio")
 
-            resultCollect[["resultHypParam"]] <- as_tibble(hypParamSam) %>%
+            resultCollect[["resultHypParam"]] <- data.frame(hypParamSam) %>%
               select(-.data$lambda) %>%
-              bind_cols(common[, 1:split_common]) %>%
+              bind_cols(data.frame(t(common[1:8]))) %>%
               mutate(
                 pos = prod(decompCollect$xDecompAgg$pos),
                 Elapsed = as.numeric(difftime(Sys.time(), t1, units = "secs")),
                 ElapsedAccum = as.numeric(difftime(Sys.time(), t0, units = "secs"))
               ) %>%
-              bind_cols(common[, (split_common + 1):total_common]) %>%
+              bind_cols(data.frame(t(common[9:11]))) %>%
               dplyr::mutate_all(unlist)
 
             mediaDecompImmediate <- select(decompCollect$mediaDecompImmediate, -.data$ds, -.data$y)
@@ -873,19 +841,25 @@ dryad_mmm <- function(InputCollect,
               decompCollect$xDecompVec,
               mediaDecompImmediate,
               mediaDecompCarryover
-            ) %>% mutate(trial = trial, iterNG = lng, iterPar = i)
+            ) %>%
+              mutate(solID = paste(trial, lng, i, sep = "_")) %>%
+              select(.data$solID, dplyr::everything())
 
-            resultCollect[["xDecompAgg"]] <- decompCollect$xDecompAgg %>%
-              mutate(train_size = train_size) %>%
-              bind_cols(common)
+            tmp <- merge(decompCollect$xDecompAgg, mod_out$Inference_matrix,
+                         by.x='rn',by.y='variable',all.x=T,all.y=F)
+            #resultCollect[["xDecompAgg"]] <- decompCollect$xDecompAgg %>%
+            resultCollect[["xDecompAgg"]] <- tmp %>%
+              bind_cols(data.frame(t(common)))
+
+
 
             if (!is.null(calibration_input)) {
               resultCollect[["liftCalibration"]] <- liftCollect %>%
-                bind_cols(common)
+                bind_cols(data.frame(t(common)))
             }
 
             resultCollect[["decompSpendDist"]] <- dt_decompSpendDist %>%
-              bind_cols(common)
+              bind_cols(data.frame(t(common)))
 
             resultCollect <- append(resultCollect, as.list(common))
             return(resultCollect)
@@ -937,7 +911,7 @@ dryad_mmm <- function(InputCollect,
       }) # end system.time
     },
     error = function(err) {
-      if (length(resultCollectNG) > 1) {
+      if (!is.null(resultCollectNG)) {
         msg <- "Error while running dryad_mmm(); providing PARTIAL results"
         warning(msg)
         message(paste(msg, err, sep = "\n"))
@@ -964,38 +938,60 @@ dryad_mmm <- function(InputCollect,
 
   resultCollect <- list()
 
-  resultCollect[["resultHypParam"]] <- as_tibble(bind_rows(
+  resultCollect[["resultHypParam"]] <- bind_rows(
     lapply(resultCollectNG, function(x) {
       bind_rows(lapply(x, function(y) y$resultHypParam))
     })
-  ))
+  ) %>%
+    arrange(.data$nrmse) %>%
+    as_tibble()
 
-  resultCollect[["xDecompVec"]] <- as_tibble(bind_rows(
+  resultCollect[["xDecompVec"]] <- bind_rows(
     lapply(resultCollectNG, function(x) {
       bind_rows(lapply(x, function(y) y$xDecompVec))
     })
-  ))
+  ) %>%
+    as_tibble()
+  # resultCollect[["xDecompVecImmediate"]] <- bind_rows(
+  #   lapply(resultCollectNG, function(x) {
+  #     bind_rows(lapply(x, function(y) y$mediaDecompImmediate))
+  #   })
+  # ) %>%
+  #   arrange(.data$nrmse, .data$ds) %>%
+  #   as_tibble()
+  # resultCollect[["xDecompVecCarryover"]] <- bind_rows(
+  #   lapply(resultCollectNG, function(x) {
+  #     bind_rows(lapply(x, function(y) y$mediaDecompCarryover))
+  #   })
+  # ) %>%
+  #   arrange(.data$nrmse, .data$ds) %>%
+  #   as_tibble()
 
-  resultCollect[["xDecompAgg"]] <- as_tibble(bind_rows(
+  resultCollect[["xDecompAgg"]] <- bind_rows(
     lapply(resultCollectNG, function(x) {
       bind_rows(lapply(x, function(y) y$xDecompAgg))
     })
-  ))
+  ) %>%
+    arrange(.data$nrmse) %>%
+    as_tibble()
 
   if (!is.null(calibration_input)) {
-    resultCollect[["liftCalibration"]] <- as_tibble(bind_rows(
+    resultCollect[["liftCalibration"]] <- bind_rows(
       lapply(resultCollectNG, function(x) {
         bind_rows(lapply(x, function(y) y$liftCalibration))
       })
     ) %>%
-      arrange(.data$mape, .data$liftMedia, .data$liftStart))
+      arrange(.data$mape, .data$liftMedia, .data$liftStart) %>%
+      as_tibble()
   }
 
-  resultCollect[["decompSpendDist"]] <- as_tibble(bind_rows(
+  resultCollect[["decompSpendDist"]] <- bind_rows(
     lapply(resultCollectNG, function(x) {
       bind_rows(lapply(x, function(y) y$decompSpendDist))
     })
-  ))
+  ) %>%
+    arrange(.data$nrmse) %>%
+    as_tibble()
 
   resultCollect$iter <- length(resultCollect$mape)
   resultCollect$elapsed.min <- sysTimeDopar[3] / 60
@@ -1114,9 +1110,8 @@ model_decomp <- function(coefs, dt_modSaturated, y_pred, dt_saturatedImmediate,
   return(decompCollect)
 }
 
-model_refit <- function(x_train, y_train, x_val, y_val, x_test, y_test,
-                        lambda, lower.limits, upper.limits,
-                        intercept_sign = "non_negative") {
+model_refit <- function(x_train, y_train, lambda, lower.limits, upper.limits,
+                        intercept_sign = "non_negative",num_perm=NULL,ci.level=NULL) {
   mod <- glmnet(
     x_train,
     y_train,
@@ -1145,44 +1140,30 @@ model_refit <- function(x_train, y_train, x_val, y_val, x_test, y_test,
     df.int <- 0
   } # ; plot(mod); print(mod)
 
-  # Calculate all Adjusted R2
-  y_train_pred <- as.vector(predict(mod, s = lambda, newx = x_train))
-  rsq_train <- get_rsq(true = y_train, predicted = y_train_pred, p = ncol(x_train), df.int = df.int)
-  if (!is.null(x_val)) {
-    y_val_pred <- as.vector(predict(mod, s = lambda, newx = x_val))
-    rsq_val <- get_rsq(true = y_val, predicted = y_val_pred, p = ncol(x_val), df.int = df.int, n_train = length(y_train))
-    y_test_pred <- as.vector(predict(mod, s = lambda, newx = x_test))
-    rsq_test <- get_rsq(true = y_test, predicted = y_test_pred, p = ncol(x_test), df.int = df.int, n_train = length(y_train))
-    y_pred <- c(y_train_pred, y_val_pred, y_test_pred)
-  } else {
-    rsq_val <- rsq_test <- NA
-    y_pred <- y_train_pred
-  }
+  y_trainPred <- predict(mod, s = lambda, newx = x_train)
+  rsq_train <- get_rsq(true = y_train, predicted = y_trainPred, p = ncol(x_train), df.int = df.int)
 
-  # Calculate all NRMSE
-  nrmse_train <- sqrt(mean((y_train - y_train_pred)^2)) / (max(y_train) - min(y_train))
-  if (!is.null(x_val)) {
-    nrmse_val <- sqrt(mean(sum((y_val - y_val_pred)^2))) / (max(y_val) - min(y_val))
-    nrmse_test <- sqrt(mean(sum((y_test - y_test_pred)^2))) / (max(y_test) - min(y_test))
-  } else {
-    nrmse_val <- nrmse_test <- y_val_pred <- y_test_pred <- NA
-  }
+  # y_testPred <- predict(mod, s = lambda, newx = x_test)
+  # rsq_test <- get_rsq(true = y_test, predicted = y_testPred); rsq_test
 
+  # mape_mod<- mean(abs((y_test - y_testPred)/y_test)* 100); mape_mod
+  coefs <- as.matrix(coef(mod))
+  # y_pred <- c(y_trainPred, y_testPred)
+
+  # mean(y_train) sd(y_train)
+  nrmse_train <- sqrt(mean((y_train - y_trainPred)^2)) / (max(y_train) - min(y_train))
+  # nrmse_test <- sqrt(mean(sum((y_test - y_testPred)^2))) /
+  # (max(y_test) - min(y_test)) # mean(y_test) sd(y_test)
+  inference <-dryad_inference(mod,lambda,y_train,y_trainPred,x_train,num_perm,ci.level)
 
   mod_out <- list(
     rsq_train = rsq_train,
-    rsq_val = rsq_val,
-    rsq_test = rsq_test,
     nrmse_train = nrmse_train,
-    nrmse_val = nrmse_val,
-    nrmse_test = nrmse_test,
-    coefs = as.matrix(coef(mod)),
-    y_train_pred = y_train_pred,
-    y_val_pred = y_val_pred,
-    y_test_pred = y_test_pred,
-    y_pred = y_pred,
+    coefs = coefs,
+    y_pred = as.vector(y_trainPred),
     mod = mod,
-    df.int = df.int
+    df.int = df.int,
+    Inference_matrix = inference
   )
 
   return(mod_out)
@@ -1209,16 +1190,9 @@ lambda_seq <- function(x, y, seq_len = 100, lambda_min_ratio = 0.0001) {
   return(lambdas)
 }
 
-hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_factor, dt_hyper_fixed = NULL, cores) {
+hyper_collector <- function(InputCollect, hyper_in, add_penalty_factor, dt_hyper_fixed = NULL, cores) {
   # Fetch hyper-parameters based on media
   hypParamSamName <- hyper_names(adstock = InputCollect$adstock, all_media = InputCollect$all_media)
-
-  # Manually add other hyper-parameters
-  hypParamSamName <- c(hypParamSamName, other_hyps)
-
-  # Add penalty factor hyper-parameters names
-  for_penalty <- names(select(InputCollect$dt_mod, -.data$ds, -.data$dep_var))
-  if (add_penalty_factor) hypParamSamName <- c(hypParamSamName, paste0("penalty_", for_penalty))
 
   # Check hyper_fixed condition + add lambda + penalty factor hyper-parameters names
   all_fixed <- check_hyper_fixed(InputCollect, dt_hyper_fixed, add_penalty_factor)
@@ -1232,23 +1206,9 @@ hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_f
       names(hyper_bound_list)[i] <- hypParamSamName[i]
     }
 
-    # Add unfixed lambda hyperparameter manually
+    # Add unfixed lambda hyperparameters manually
     if (length(hyper_bound_list[["lambda"]]) != 1) {
       hyper_bound_list$lambda <- c(0, 1)
-    }
-
-    # Add unfixed train_size hyperparameter manually
-    if (ts_validation) {
-      if (!"train_size" %in% names(hyper_bound_list)) {
-        hyper_bound_list$train_size <- c(0.5, 0.8)
-      }
-      message(sprintf(
-        "Time-series validation with default train_size range of %s of the data...",
-        paste(formatNum(100 * hyper_bound_list$train_size, pos = "%"), collapse = "-")
-      ))
-    } else {
-      hyper_bound_list$train_size <- 1
-      message("Fitting time series with all available data...")
     }
 
     # Add unfixed penalty.factor hyperparameters manually
@@ -1336,3 +1296,77 @@ init_msgs_run <- function(InputCollect, refresh, lambda_control = NULL, quiet = 
     }
   }
 }
+
+
+dryad_inference<-function(mod,lambda_optim,y,y_pred,x,num_perm=NULL,ci.level=NULL){
+  if(is.null(num_perm)) num_perm=1000
+  if(is.null(ci.level)) ci.level=0.95
+
+
+  level <- 1-ci.level
+
+  n<-dim(x)[1]
+  p<-dim(x)[2]
+
+  M <- matrix(nrow= p+1,ncol = 4)
+  colnames(M) <- c('estimate','lower bound','upper bound','p-value')
+  rownames(M)<-c('(Intercept)',colnames(x))
+
+  M[1,1]<- mod$a0
+  M[2:(p+1),1]<-as.vector(mod$beta)
+
+  #estimate error variance
+  # pr <- predict.glmnet(mod,x,type='response')
+  #pr <- pr[,pos_lopt]
+  sigma2 <- as.numeric(var(y-y_pred))
+
+  #add the intercept as first independent variable
+  X<-cbind(rep(1,n),x)
+
+  #compute confidence intervals
+  I <-diag(p+1)
+  prodX <-t(X)%*%X
+  invM <- solve( prodX+ lambda_optim* I )
+
+    var_coeff <-sigma2*invM %*% prodX %*% invM
+
+  for(i in 1:dim(M)[1]){
+    M[i,2]<- M[i,1]- qt(1-level/2,n-p)* sqrt(var_coeff[i,i])
+    M[i,3]<- M[i,1]+ qt(1-level/2,n-p)* sqrt(var_coeff[i,i])
+  }
+
+  #compute p-values
+ # coeff_null<-matrix(nrow=p+1,ncol=num_perm)
+#  rownames(coeff_null)<-c('intercept',colnames(x))
+
+ # for(i in 1:num_perm){
+#    y_perm<-sample(y)
+#    mod_null <- glmnet(x,y_perm,family='gaussian',alpha=0,lambda= lambda_optim)
+#    coeff_null[1,i]<- mod_null$a0
+#    coeff_null[2:(p+1),i]<-as.vector( mod_null$beta)
+ # }
+    tmp <- matrix(1:num_perm, nrow=num_perm)
+    coeff_null<-apply(tmp, 1, auxiliary_mod,xx=x,y=y,alpha=0,lambda_optim=lambda_optim,p=p)
+    rownames(coeff_null)<-c('intercept',colnames(x))
+
+  for(i in 1:(p+1)){
+    M[i,4] <- sum(abs(coeff_null[i,])>abs(M[i,1])) /num_perm
+  }
+
+  M <- as.data.frame(M)
+  M$variable <- rownames(M)
+  return(M)
+
+}
+
+
+auxiliary_mod<- function(x,y,xx,alpha,lambda_optim,p){
+
+  y_perm<-sample(y)
+  mod_null <- glmnet(xx,y_perm,family='gaussian',alpha=0,lambda= lambda_optim)
+  coeff_null <-c( mod_null$a0,as.vector( mod_null$beta))
+  return(coeff_null)
+}
+
+
+
