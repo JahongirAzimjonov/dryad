@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Robyn Dataset: Time series
+#' dryad Dataset: Time series
 #'
 #' Describe the dataset. Input time series should be daily, weekly or monthly.
 #'
@@ -32,7 +32,7 @@
 # save(dt_simulated_weekly, file = "data/dt_simulated_weekly.RData", version = 2)
 
 ####################################################################
-#' Robyn Dataset: Time series
+#' dryad Dataset: Time series
 #'
 #' Describe the dataset. When using own holidays, please keep the
 #' header \code{c("ds", "holiday", "country", "year")}.
