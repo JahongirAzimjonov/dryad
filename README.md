@@ -1,7 +1,6 @@
-# dryad<img src='R/data/logo.png' align="right" height="169px" />
-### Marketing Mix Model with bootstrap estimates
-
-Please note that the project is in beta phase. 
+# Marketing Mix Model with bootstrap estimates
+## Status: beta
+dryad<img src='R/data/logo.png' align="right" height="169px" />
 
 ---
 
