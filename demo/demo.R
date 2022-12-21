@@ -5,7 +5,9 @@ packageVersion("dryad")
 library(readxl)
 Sys.setenv(R_FUTURE_FORK_ENABLE = "true") ## Force multicore 
 options(future.fork.enable = TRUE)
-setwd("C:/Users/charl/Documents/dryad") # set WD
+
+# setwd("C:/Users/charl/Documents/dryad") # set WD
+setwd("P:/charles.shaw/EA/DATA/dryad)")
 
 mydata <- read_excel("demo_data_1.xlsx", sheet = "data")
 
