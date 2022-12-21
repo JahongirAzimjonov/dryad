@@ -2,7 +2,6 @@
 
 ### Status: beta
 <img src='R/data/logo.png' align="right" height="169px" />
----
 
 ## Introduction
 
