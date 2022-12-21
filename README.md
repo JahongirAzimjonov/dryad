@@ -1,8 +1,7 @@
 # Marketing Mix Model with bootstrap estimates
-## Status: beta
-<img src='R/data/logo.png' align="right" height="169px" />
-
 ---
+### Status: beta
+<img src='R/data/logo.png' align="right" height="169px" />
 
 ## Introduction
 
