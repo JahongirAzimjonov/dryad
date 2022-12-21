@@ -4,10 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Import and Export Robyn JSON files
+#' Import and Export dryad JSON files
 #'
 #' \code{dryad_write()} generates a JSON file with all the information
-#' required to replicate a single Robyn model.
+#' required to replicate a single dryad model.
 #'
 #' @inheritParams dryad_outputs
 #' @param InputCollect \code{dryad_inputs()} output.
