@@ -450,7 +450,7 @@ plot.dryad_allocator <- function(x, ...) plot(x$plots$plots, ...)
 
 eval_f <- function(X) {
   # eval_list <- get("eval_list", pos = as.environment(-1))
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("DRYAD_TEMP")
   # mm_lm_coefs <- eval_list[["mm_lm_coefs"]]
   coefsFiltered <- eval_list[["coefsFiltered"]]
   alphas <- eval_list[["alphas"]]
@@ -561,7 +561,7 @@ eval_f <- function(X) {
 }
 
 eval_g_eq <- function(X) {
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("DRYAD_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(
@@ -571,7 +571,7 @@ eval_g_eq <- function(X) {
 }
 
 eval_g_ineq <- function(X) {
-  eval_list <- getOption("ROBYN_TEMP")
+  eval_list <- getOption("DRYAD_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(
