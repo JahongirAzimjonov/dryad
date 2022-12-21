@@ -8,9 +8,13 @@
  **What is dryad MMM**: dryad is a fork of Robyn, the semi-automated and open-sourced Marketing Mix Modeling (MMM) package from Meta Marketing Science. 
 Robyn uses various machine learning techniques (Ridge regression, multi-objective evolutionary algorithm for hyperparameter optimization, time-series decomposition for trend and season, gradient-based optimization for budget allocation etc.) to define media channel efficiency and effectivity, explore adstock rates and saturation curves. 
 
-Dryad extends Robyn by performing bootstrapped ridge regressions for the same models to estimate penalized (added bias to reduce variance) least squares (PLS) model coefficients, which are more optimal, stable estimates that are more likely to validate in new samples.
+Dryad extends Robyn by performing bootstrapped ridge regressions for the same models to estimate penalized (added bias to reduce variance) least squares (PLS) model coefficients, which are more optimal, stable estimates that are more likely to validate in new samples. 
 
 Dryad further extends Robyn by adding diagnostics, visuals, augmented numerical outputs, and a forecasting function. To help uncover causal interdependencies from observational data (one of the great challenges of nonlinear time series analysis!), we use the popular Shannon-entropy based Transfer Entropy, which represents a prominent tool for assessing directed information flow between joint processes.
+
+## Why the bootstrap?
+
+We are all used to looking at point estimates, which dangerously omit any information about the uncertainty of that estimate. Statistics is about inferring something from our sample about a population we do not have access to, so being able to understand how uncertain our sample statistic is will help us make better inferences about the population. One effective way to estimate the sampling distribution of a statistic is to draw additional samples (with replacement) from the sample itself and recalculate the statistic for each resample. This procedure is called the bootstrap. This procedure offers two advantages simultaneously. First, the bootstrap is a flexible resampling-based alternative for quantifying uncertainty. Second, it allows us to build on top of Robyn's GlmNet, rather than replcaing it. This helps us to obtain estimates that are consistent over time, which is useful for running refresh models. 
   
 ## The Interpretability-Flexibility tradeoff
 
@@ -41,7 +45,11 @@ Machine learning is frequently an algorithmic form of statistical model estimati
 As a result, the paradigm for data analysis provided by machine learning differs significantly from the standard econometric modelling and testing framework. Out-of-sample performance and comprehending the bias-variance tradeoff replace traditional fit measures like as $R^2$, t-values, p-values, and the concept of statistical significance. 
 
 It is sometimes convenient to contrast maximum likelihood estimates with supervised machine learning. This comparison is slightly exaggerated. Rather, the two approaches should be considered as opposite extremities of a methodological continuum. Linear regression approaches like Lasso and ridge regression, as well as hybrids like Elastic Net, sit somewhere in the centre, delivering some mix of maximum likelihood estimation's explanatory capacity while keeping out-of-sample predictive performance on high-dimensional datasets.
-  
 
+## Causality
+
+Causality presents pressing philosophical issues because we do not have an adequate and generally accepted understanding of the cluster of concepts it involves. However, we will leave philosophical deliberations to philosophers and consider causality in a very narrow, probabilistic, sense. 
+
+Granger-Wiener type causality is a probabilistic account of causality which provides a way to investigate causality in terms of prediction. Granger causality has been a leading concept for decades in the field of finance; however, its notion has also been utilized in many other fields. The original bivariate Granger causality concept has been vastly extended. Transfer entropy (TE), as a non-parametric causality inference method, is an effective method to detect Cause-Effect relations in both linear and nonlinear processes. TE is a nonlinear generalization of the Granger causality test stemming from information theory, and it is therefore model-free and accounts for both linear and nonlinear causal effects. Financial data have specific features that have been thoroughly studied, such as nonnormality, volatility clustering, and nonlinearities. These features are also present in marketing datasets. Therefore, to infer about the relationships of marketing variables and correctly attain the connectivity network, suitable approaches that take into consideration the features of the data are required.
   
  
