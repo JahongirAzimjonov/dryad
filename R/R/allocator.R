@@ -280,7 +280,7 @@ dryad_allocator <- function(dryad_object = NULL,
     expSpendUnitTotal = expSpendUnitTotal
   )
   # So we can implicitly use these values within eval_f()
-  options("ROBYN_TEMP" = eval_list)
+  options("DRYAD_TEMP" = eval_list)
 
   # eval_f(c(1,1))
   # $objective
@@ -357,7 +357,7 @@ dryad_allocator <- function(dryad_object = NULL,
     optmResponseUnitLift = (-eval_f(nlsMod$solution)[["objective.channel"]] / histResponseUnitModel) - 1
   ) %>%
     mutate(optmResponseUnitTotalLift = (.data$optmResponseUnitTotal / .data$initResponseUnitTotal) - 1)
-  .Options$ROBYN_TEMP <- NULL # Clean auxiliary method
+  .Options$DRYAD_TEMP <- NULL # Clean auxiliary method
 
   ## Plot allocator results
   plots <- allocation_plots(InputCollect, OutputCollect, dt_optimOut, select_model, scenario, export, quiet)
