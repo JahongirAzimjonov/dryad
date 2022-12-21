@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Generate and Export Robyn Plots
+#' Generate and Export dryad Plots
 #'
 #' @rdname dryad_outputs
 #' @return Invisible list with \code{ggplot} plots.
@@ -228,7 +228,7 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE, ...) {
 
 
 ####################################################################
-#' Generate and Export Robyn One-Pager Plots
+#' Generate and Export dryad One-Pager Plots
 #'
 #' @inheritParams dryad_outputs
 #' @inheritParams dryad_csv
@@ -557,10 +557,10 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       }
 
       ## Aggregate one-pager plots and export
-      ver <- as.character(utils::packageVersion("Robyn"))
+      ver <- as.character(utils::packageVersion("dryad"))
       rver <- utils::sessionInfo()$R.version
       onepagerTitle <- sprintf("One-pager for Model ID: %s", sid)
-      onepagerCaption <- sprintf("Robyn v%s [R-%s.%s]", ver, rver$major, rver$minor)
+      onepagerCaption <- sprintf("dryad v%s [R-%s.%s]", ver, rver$major, rver$minor)
       pg <- wrap_plots(p2, p5, p1, p8, p3, p7, p4, p6, ncol = 2) +
         plot_annotation(
           title = onepagerTitle, subtitle = errors,
