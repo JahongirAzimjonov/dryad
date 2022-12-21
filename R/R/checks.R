@@ -421,24 +421,30 @@ check_adstock <- function(adstock) {
 
 check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
                                   paid_media_spends = NULL, organic_vars = NULL,
-                                  exposure_vars = NULL, quiet = FALSE) {
-  if (is.null(hyperparameters) && !quiet) {
+                                  exposure_vars = NULL) {
+  if (is.null(hyperparameters)) {
     message(paste(
       "Input 'hyperparameters' not provided yet. To include them, run",
       "dryad_inputs(InputCollect = InputCollect, hyperparameters = ...)"
     ))
   } else {
+    if (!"train_size" %in% names(hyperparameters)) {
+      hyperparameters[["train_size"]] <- c(0.5, 0.8)
+      warning("Automatically added missing hyperparameter range: 'train_size' = c(0.5, 0.8)")
+    }
     # Non-adstock hyperparameters check
     check_train_size(hyperparameters)
     # Adstock hyperparameters check
-    hyperparameters <- hyperparameters[which(!names(hyperparameters) %in% other_hyps)]
     hyperparameters_ordered <- hyperparameters[order(names(hyperparameters))]
     get_hyp_names <- names(hyperparameters_ordered)
+    original_order <- sapply(names(hyperparameters), function(x) which(x == get_hyp_names))
     ref_hyp_name_spend <- hyper_names(adstock, all_media = paid_media_spends)
     ref_hyp_name_expo <- hyper_names(adstock, all_media = exposure_vars)
     ref_hyp_name_org <- hyper_names(adstock, all_media = organic_vars)
-    ref_all_media <- sort(c(ref_hyp_name_spend, ref_hyp_name_org))
-    all_ref_names <- c(ref_hyp_name_spend, ref_hyp_name_expo, ref_hyp_name_org)
+    ref_hyp_name_other <- get_hyp_names[get_hyp_names %in% other_hyps]
+    # Excluding lambda (first other_hyps) given its range is not customizable
+    ref_all_media <- sort(c(ref_hyp_name_spend, ref_hyp_name_org, other_hyps))
+    all_ref_names <- c(ref_hyp_name_spend, ref_hyp_name_expo, ref_hyp_name_org, other_hyps)
     if (!all(get_hyp_names %in% all_ref_names)) {
       wrong_hyp_names <- get_hyp_names[which(!(get_hyp_names %in% all_ref_names))]
       stop(
@@ -447,7 +453,7 @@ check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
       )
     }
     total <- length(get_hyp_names)
-    total_in <- length(c(ref_hyp_name_spend, ref_hyp_name_org))
+    total_in <- length(c(ref_hyp_name_spend, ref_hyp_name_org, ref_hyp_name_other))
     if (total != total_in) {
       stop(sprintf(
         paste(
@@ -463,15 +469,13 @@ check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
       get_hyp_names[get_expo_pos] <- ref_all_media[get_expo_pos]
       names(hyperparameters_ordered) <- get_hyp_names
     }
-    if (!identical(get_hyp_names, ref_all_media)) {
-      stop("Input 'hyperparameters' must contain: ", paste(ref_all_media, collapse = ", "))
-    }
     check_hyper_limits(hyperparameters_ordered, "thetas")
     check_hyper_limits(hyperparameters_ordered, "alphas")
     check_hyper_limits(hyperparameters_ordered, "gammas")
     check_hyper_limits(hyperparameters_ordered, "shapes")
     check_hyper_limits(hyperparameters_ordered, "scales")
-    return(hyperparameters_ordered)
+    hyperparameters_unordered <- hyperparameters_ordered[original_order]
+    return(hyperparameters_unordered)
   }
 }
 
