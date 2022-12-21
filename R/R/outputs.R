@@ -120,7 +120,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
       )
     )
     folder_var <- ifelse(!as.integer(depth) > 0, "init", paste0("rf", depth))
-    plot_folder_sub <- paste("Robyn", format(Sys.time(), "%Y%m%d%H%M"), folder_var, sep = "_")
+    plot_folder_sub <- paste("dryad", format(Sys.time(), "%Y%m%d%H%M"), folder_var, sep = "_")
   }
 
   # Final results object
