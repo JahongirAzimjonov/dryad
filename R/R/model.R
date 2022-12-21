@@ -1296,13 +1296,9 @@ hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_f
       names(hyper_list_all)[i] <- hypParamSamName[i]
     }
 
-    dt_hyper_fixed_mod <- data.frame(bind_cols(lapply(hyper_bound_list_fixed, function(x) rep(x, cores))))
-  } else {
-    hyper_bound_list_fixed <- list()
-    for (i in seq_along(hypParamSamName)) {
-      hyper_bound_list_fixed[[i]] <- dt_hyper_fixed[[hypParamSamName[i]]]
-      names(hyper_bound_list_fixed)[i] <- hypParamSamName[i]
-    }
+    dt_hyper_fixed_mod <- data.frame(matrix(hyper_bound_list_fixed, nrow = 1))
+    names(dt_hyper_fixed_mod) <- names(hyper_bound_list_fixed)
+  }
 
     hyper_list_all <- hyper_bound_list_fixed
     hyper_bound_list_updated <- hyper_bound_list_fixed[which(unlist(lapply(hyper_bound_list_fixed, length) == 2))]
