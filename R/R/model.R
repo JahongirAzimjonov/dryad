@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Robyn Modelling Function
+#' dryad Modelling Function
 #'
 #' \code{dryad_run()} consumes \code{dryad_input()} outputs,
 #' runs \code{dryad_mmm()}, and collects all modeling results.
@@ -15,7 +15,7 @@
 #' @param dt_hyper_fixed data.frame or named list. Only provide when loading
 #' old model results. It consumes hyperparameters from saved csv
 #' \code{pareto_hyperparameters.csv} or JSON file to replicate a model.
-#' @param ts_validation Boolean. When set to \code{TRUE}, Robyn will split data
+#' @param ts_validation Boolean. When set to \code{TRUE}, dryad will split data
 #' by test, train, and validation partitions to validate the time series. By
 #' default the "train_size" range is set to \code{c(0.5, 0.8)}, but it can be
 #' customized or set to a fixed value using the hyperparameters input. For example,
