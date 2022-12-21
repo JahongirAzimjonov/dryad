@@ -1,3 +1,8 @@
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 ####################################################################
 #' dryad Modelling Function
 #'
@@ -1420,10 +1425,3 @@ auxiliary_mod<- function(x,y,xx,alpha,lambda_optim,p){
   coeff_null <-c( mod_null$a0,as.vector( mod_null$beta))
   return(coeff_null)
 }
-
-
-
-
-
-
-
