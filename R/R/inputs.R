@@ -145,12 +145,12 @@
 #' )
 #' print(InputCollect)
 #' @return List. Contains all input parameters and modified results
-#' using \code{Robyn:::dryad_engineering()}. This list is ready to be
+#' using \code{dryad:::dryad_engineering()}. This list is ready to be
 #' used on other functions like \code{dryad_run()} and \code{print()}.
 #' Class: \code{dryad_inputs}.
 #' @export
 dryad_inputs <- function(dt_input = NULL,
-                         dt_holidays = Robyn::dt_prophet_holidays,
+                         dt_holidays = dryad::dt_prophet_holidays,
                          date_var = "auto",
                          dep_var = NULL,
                          dep_var_type = NULL,
