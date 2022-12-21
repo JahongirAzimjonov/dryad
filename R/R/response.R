@@ -109,11 +109,11 @@ dryad_response <- function(InputCollect = NULL,
       if (!file.exists(dryad_object)) {
         stop("File does not exist or is somewhere else. Check: ", dryad_object)
       } else {
-        Robyn <- readRDS(dryad_object)
+        dryad <- readRDS(dryad_object)
         objectPath <- dirname(dryad_object)
         objectName <- sub("'\\..*$", "", basename(dryad_object))
       }
-      select_build_all <- 0:(length(Robyn) - 1)
+      select_build_all <- 0:(length(dryad) - 1)
       if (is.null(select_build)) {
         select_build <- max(select_build_all)
         if (!quiet && length(select_build_all) > 1) {
