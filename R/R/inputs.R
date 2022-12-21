@@ -259,11 +259,6 @@ dryad_inputs <- function(dt_input = NULL,
     ## Check adstock
     adstock <- check_adstock(adstock)
 
-    ## Check hyperparameters (if passed)
-    hyperparameters <- check_hyperparameters(
-      hyperparameters, adstock, paid_media_spends, organic_vars, exposure_vars
-    )
-
     ## Check calibration and iters/trials
     calibration_input <- check_calibration(
       dt_input, date_var, calibration_input, dayInterval, dep_var,
@@ -321,6 +316,11 @@ dryad_inputs <- function(dt_input = NULL,
     if (!is.null(hyperparameters)) {
       ### Conditional output 1.2
       ## Running dryad_inputs() for the 1st time & 'hyperparameters' provided --> run dryad_engineering()
+
+      ## Check hyperparameters
+      hyperparameters <- check_hyperparameters(
+        hyperparameters, adstock, paid_media_spends, organic_vars, exposure_vars
+      )
       InputCollect <- dryad_engineering(InputCollect, ...)
     }
   } else {
@@ -351,7 +351,8 @@ dryad_inputs <- function(dt_input = NULL,
       ## 'hyperparameters' provided --> run dryad_engineering()
       ## Update & check hyperparameters
       if (is.null(InputCollect$hyperparameters)) InputCollect$hyperparameters <- hyperparameters
-      check_hyperparameters(InputCollect$hyperparameters, InputCollect$adstock, InputCollect$all_media)
+      InputCollect$hyperparameters <- check_hyperparameters(
+        InputCollect$hyperparameters, InputCollect$adstock, InputCollect$all_media)
       InputCollect <- dryad_engineering(InputCollect, ...)
     }
   }
@@ -542,7 +543,7 @@ hyper_limits <- function() {
     thetas = c(">=0", "<1"),
     alphas = c(">0", "<10"),
     gammas = c(">0", "<=1"),
-    shapes = c(">0", "<20"),
+    shapes = c(">=0", "<20"),
     scales = c(">=0", "<=1")
   )
 }
