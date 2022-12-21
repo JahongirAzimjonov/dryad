@@ -11,7 +11,7 @@
 #'
 #' @inheritParams dryad_run
 #' @inheritParams dryad_outputs
-#' @param dryad_object Character or List. Path of the \code{Robyn.RDS} object
+#' @param dryad_object Character or List. Path of the \code{dryad.RDS} object
 #' that contains all previous modeling information or the imported list.
 #' @param select_build Integer. Default to the latest model build. \code{select_build = 0}
 #' selects the initial model. \code{select_build = 1} selects the first refresh model.
@@ -57,7 +57,7 @@
 #' \dontrun{
 #' # Having InputCollect and OutputCollect results
 #' # Set your exported model location
-#' dryad_object <- "~/Desktop/MyRobyn.RDS"
+#' dryad_object <- "~/Desktop/mydryad.RDS"
 #'
 #' # Check media summary for selected model from the simulated data
 #' select_model <- "3_10_3"
