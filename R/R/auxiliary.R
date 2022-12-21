@@ -58,8 +58,8 @@ dryad_update <- function(dev = TRUE, ...) {
   if (dev) {
     try_require("remotes")
     # options(timeout = 400)
-    install_github(repo = "facebookexperimental/Robyn/R", ...)
+    install_github(repo = "hemicontinuous/dryad/R", ...)
   } else {
-    utils::install.packages("Robyn", ...)
+    utils::install.packages("dryad", ...)
   }
 }
