@@ -127,8 +127,8 @@ dryad_response <- function(InputCollect = NULL,
         stop("'select_build' must be one value of ", paste(select_build_all, collapse = ", "))
       }
       listName <- ifelse(select_build == 0, "listInit", paste0("listRefresh", select_build))
-      InputCollect <- Robyn[[listName]][["InputCollect"]]
-      OutputCollect <- Robyn[[listName]][["OutputCollect"]]
+      InputCollect <- dryad[[listName]][["InputCollect"]]
+      OutputCollect <- dryad[[listName]][["OutputCollect"]]
       dt_hyppar <- OutputCollect$resultHypParam
       dt_coef <- OutputCollect$xDecompAgg
     } else {
