@@ -18,9 +18,9 @@
 #' @examples
 #' \dontrun{
 #' InputCollectJSON <- dryad_inputs(
-#'   dt_input = Robyn::dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
-#'   json_file = "~/Desktop/RobynModel-1_29_12.json"
+#'   dt_input = dryad::dt_simulated_weekly,
+#'   dt_holidays = dryad::dt_prophet_holidays,
+#'   json_file = "~/Desktop/dryadModel-1_29_12.json"
 #' )
 #' print(InputCollectJSON)
 #' }
@@ -85,7 +85,7 @@ dryad_write <- function(InputCollect,
   }
 
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
-  filename <- sprintf("%s/RobynModel-%s.json", dir, select_model)
+  filename <- sprintf("%s/dryadModel-%s.json", dir, select_model)
   filename <- gsub("//", "/", filename)
   class(ret) <- c("dryad_write", class(ret))
   attr(ret, "json_file") <- filename
@@ -270,7 +270,7 @@ dryad_chain <- function(json_file) {
   ids <- c(json_data$InputCollect$refreshChain, json_data$ExportedModel$select_model)
   plot_folder <- json_data$ExportedModel$plot_folder
   temp <- stringr::str_split(plot_folder, "/")[[1]]
-  chain <- temp[startsWith(temp, "Robyn_")]
+  chain <- temp[startsWith(temp, "dryad_")]
   if (length(chain) == 0) chain <- tail(temp[temp != ""], 1)
   base_dir <- gsub(sprintf("\\/%s.*", chain[1]), "", plot_folder)
   chainData <- list()
@@ -278,7 +278,7 @@ dryad_chain <- function(json_file) {
     if (i == length(chain)) {
       json_new <- json_data
     } else {
-      file <- paste0("RobynModel-", json_new$InputCollect$refreshSourceID, ".json")
+      file <- paste0("dryadModel-", json_new$InputCollect$refreshSourceID, ".json")
       filename <- paste(c(base_dir, chain[1:i], file), collapse = "/")
       json_new <- dryad_read(filename, quiet = TRUE)
     }
@@ -286,11 +286,11 @@ dryad_chain <- function(json_file) {
   }
   chainData <- chainData[rev(seq_along(chain))]
   dirs <- unlist(lapply(chainData, function(x) x$ExportedModel$plot_folder))
-  json_files <- paste0(dirs, "RobynModel-", names(dirs), ".json")
+  json_files <- paste0(dirs, "dryadModel-", names(dirs), ".json")
   attr(chainData, "json_files") <- json_files
   attr(chainData, "chain") <- ids # names(chainData)
   if (length(ids) != length(names(chainData))) {
-    warning("Can't replicate chain-like results if you don't follow Robyn's chain structure")
+    warning("Can't replicate chain-like results if you don't follow dryad's chain structure")
   }
   return(invisible(chainData))
 }
