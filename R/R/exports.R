@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Export Robyn Model to Local File [DEPRECATED]
+#' Export dryad Model to Local File [DEPRECATED]
 #'
 #' Use \code{dryad_save()} to select and save as .RDS file the initial model.
 #'
@@ -103,9 +103,9 @@ dryad_save <- function(InputCollect,
 
   InputCollect$refreshCounter <- 0
   listInit <- list(InputCollect = InputCollect, OutputCollect = OutputCollect)
-  Robyn <- list(listInit = listInit)
+  dryad <- list(listInit = listInit)
 
-  class(Robyn) <- c("dryad_exported", class(Robyn))
+  class(dryad) <- c("dryad_exported", class(dryad))
   if (!is.null(dryad_object)) {
     saveRDS(Robyn, file = dryad_object)
     if (!quiet) message("Exported results: ", dryad_object)
