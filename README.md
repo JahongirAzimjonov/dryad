@@ -1,6 +1,6 @@
 # Marketing Mix Model with bootstrap estimates
 ## Status: beta
-dryad<img src='R/data/logo.png' align="right" height="169px" />
+<img src='R/data/logo.png' align="right" height="169px" />
 
 ---
 
