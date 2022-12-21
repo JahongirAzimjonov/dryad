@@ -19,7 +19,7 @@
 #'    that are considered ground truth to calibrate MMM. Usual experiment
 #'    types are people-based (e.g. Facebook conversion lift) and
 #'    geo-based (e.g. Facebook GeoLift).
-#'    \item Currently, Robyn only accepts point-estimate as calibration
+#'    \item Currently, dryad only accepts point-estimate as calibration
 #'    input. For example, if 10k$ spend is tested against a hold-out
 #'    for channel A, then input the incremental return as point-estimate
 #'    as the example below.
@@ -124,8 +124,8 @@
 #' @examples
 #' # Using dummy simulated data
 #' InputCollect <- dryad_inputs(
-#'   dt_input = Robyn::dt_simulated_weekly,
-#'   dt_holidays = Robyn::dt_prophet_holidays,
+#'   dt_input = dryad::dt_simulated_weekly,
+#'   dt_holidays = dryad::dt_prophet_holidays,
 #'   date_var = "DATE",
 #'   dep_var = "revenue",
 #'   dep_var_type = "revenue",
