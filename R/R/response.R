@@ -109,11 +109,11 @@ dryad_response <- function(InputCollect = NULL,
       if (!file.exists(dryad_object)) {
         stop("File does not exist or is somewhere else. Check: ", dryad_object)
       } else {
-        dryad <- readRDS(dryad_object)
+        Robyn <- readRDS(dryad_object)
         objectPath <- dirname(dryad_object)
         objectName <- sub("'\\..*$", "", basename(dryad_object))
       }
-      select_build_all <- 0:(length(dryad) - 1)
+      select_build_all <- 0:(length(Robyn) - 1)
       if (is.null(select_build)) {
         select_build <- max(select_build_all)
         if (!quiet && length(select_build_all) > 1) {
@@ -127,8 +127,8 @@ dryad_response <- function(InputCollect = NULL,
         stop("'select_build' must be one value of ", paste(select_build_all, collapse = ", "))
       }
       listName <- ifelse(select_build == 0, "listInit", paste0("listRefresh", select_build))
-      InputCollect <- dryad[[listName]][["InputCollect"]]
-      OutputCollect <- dryad[[listName]][["OutputCollect"]]
+      InputCollect <- Robyn[[listName]][["InputCollect"]]
+      OutputCollect <- Robyn[[listName]][["OutputCollect"]]
       dt_hyppar <- OutputCollect$resultHypParam
       dt_coef <- OutputCollect$xDecompAgg
     } else {

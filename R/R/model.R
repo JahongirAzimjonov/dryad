@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' dryad Modelling Function
+#' Robyn Modelling Function
 #'
 #' \code{dryad_run()} consumes \code{dryad_input()} outputs,
 #' runs \code{dryad_mmm()}, and collects all modeling results.
@@ -15,7 +15,7 @@
 #' @param dt_hyper_fixed data.frame or named list. Only provide when loading
 #' old model results. It consumes hyperparameters from saved csv
 #' \code{pareto_hyperparameters.csv} or JSON file to replicate a model.
-#' @param ts_validation Boolean. When set to \code{TRUE}, dryad will split data
+#' @param ts_validation Boolean. When set to \code{TRUE}, Robyn will split data
 #' by test, train, and validation partitions to validate the time series. By
 #' default the "train_size" range is set to \code{c(0.5, 0.8)}, but it can be
 #' customized or set to a fixed value using the hyperparameters input. For example,
@@ -39,7 +39,7 @@
 #' "DiscreteOnePlusOne", "PortfolioDiscreteOnePlusOne", "NaiveTBPSA",
 #' "cGA", "RandomSearch")}.
 #' @param intercept_sign Character. Choose one of "non_negative" (default) or
-#' "unconstrained". By default, if intercept is negative, dryad will drop intercept
+#' "unconstrained". By default, if intercept is negative, Robyn will drop intercept
 #' and refit the model. Consider changing intercept_sign to "unconstrained" when
 #' there are \code{context_vars} with large positive values.
 #' @param seed Integer. For reproducible results when running nevergrad.
@@ -263,7 +263,7 @@ Pareto-front ({x$pareto_fronts}) All solutions ({nSols}): {paste(x$allSolutions,
 }
 
 ####################################################################
-#' Train dryad Models
+#' Train Robyn Models
 #'
 #' \code{dryad_train()} consumes output from \code{dryad_input()}
 #' and runs the \code{dryad_mmm()} on each trial.
@@ -350,7 +350,7 @@ dryad_train <- function(InputCollect, hyper_collect,
             "This trial contains", num_coef0_mod, "iterations with all media coefficient = 0.",
             "Please reconsider your media variable choice if the pareto choices are unreasonable.",
             "\n   Recommendations:",
-            "\n1. Increase hyperparameter ranges for 0-coef channels to give dryad more freedom",
+            "\n1. Increase hyperparameter ranges for 0-coef channels to give Robyn more freedom",
             "\n2. Split media into sub-channels, and/or aggregate similar channels, and/or introduce other media",
             "\n3. Increase trials to get more samples"
           ))
@@ -411,7 +411,7 @@ dryad_mmm <- function(InputCollect,
   #### Collect hyperparameters
 
   if (TRUE) {
-hypParamSamName <- names(hyper_collect$hyper_list_all)
+    hypParamSamName <- names(hyper_collect$hyper_list_all)
     # Optimization hyper-parameters
     hyper_bound_list_updated <- hyper_collect$hyper_bound_list_updated
     hyper_bound_list_updated_name <- names(hyper_bound_list_updated)
@@ -1045,9 +1045,7 @@ model_decomp <- function(coefs, dt_modSaturated, y_pred, dt_saturatedImmediate,
   xDecompOut <- cbind(data.frame(ds = dt_modRollWind$ds, y = y, y_pred = y_pred), xDecomp)
 
   ## Decomp immediate & carryover response
-  sel_coef <- rownames(coefs) %in% names(dt_saturatedImmediate)
-  coefs_media <- coefs[sel_coef, ]
-  names(coefs_media) <- rownames(coefs)[sel_coef]
+  coefs_media <- coefs[rownames(coefs) %in% names(dt_saturatedImmediate), ]
   mediaDecompImmediate <- data.frame(mapply(function(regressor, coeff) {
     regressor * coeff
   }, regressor = dt_saturatedImmediate, coeff = coefs_media))
@@ -1264,12 +1262,12 @@ hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_f
         hyper_bound_list$train_size <- c(0.5, 0.8)
       }
       message(sprintf(
-        "Time-series validation with train_size range of %s of the data...",
+        "Time-series validation with default train_size range of %s of the data...",
         paste(formatNum(100 * hyper_bound_list$train_size, pos = "%"), collapse = "-")
       ))
     } else {
-       if ("train_size" %in% names(hyper_bound_list)) {
-        warning("Provided train_size but ts_validation = FALSE. Time series validation inactive.")
+      hyper_bound_list$train_size <- 1
+      message("Fitting time series with all available data...")
     }
 
     # Add unfixed penalty.factor hyperparameters manually
@@ -1320,6 +1318,7 @@ hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_f
     all_fixed = all_fixed
   ))
 }
+
 init_msgs_run <- function(InputCollect, refresh, lambda_control = NULL, quiet = FALSE) {
   if (!is.null(lambda_control)) {
     message("Input 'lambda_control' deprecated in v3.6.0; lambda is now selected by hyperparameter optimization")
@@ -1426,3 +1425,10 @@ auxiliary_mod<- function(x,y,xx,alpha,lambda_optim,p){
   coeff_null <-c( mod_null$a0,as.vector( mod_null$beta))
   return(coeff_null)
 }
+
+
+
+
+
+
+

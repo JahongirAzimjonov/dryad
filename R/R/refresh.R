@@ -8,7 +8,7 @@
 #'
 #' @description
 #' \code{dryad_refresh()} builds updated models based on
-#' the previously built models saved in the \code{dryad.RDS} object specified
+#' the previously built models saved in the \code{Robyn.RDS} object specified
 #' in \code{dryad_object}. For example, when updating the initial build with 4
 #' weeks of new data, \code{dryad_refresh()} consumes the selected model of
 #' the initial build, sets lower and upper bounds of hyperparameters for the
@@ -44,7 +44,7 @@
 #' model build move forward. For example, \code{refresh_steps = 4} on weekly data
 #' means the \code{InputCollect$window_start} & \code{InputCollect$window_end}
 #' move forward 4 weeks. If \code{refresh_steps} is smaller than the number of
-#' newly provided data points, then dryad would only use the first N steps of the
+#' newly provided data points, then Robyn would only use the first N steps of the
 #' new data.
 #' @param refresh_mode Character. Options are "auto" and "manual". In auto mode,
 #' the \code{dryad_refresh()} function builds refresh models with given
@@ -62,20 +62,20 @@
 #' models (one-pagers and Pareto CSV files will already be generated).
 #' @param ... Additional parameters to overwrite original custom parameters
 #' passed into initial model.
-#' @return List. The dryad object, class \code{dryad_refresh}.
+#' @return List. The Robyn object, class \code{dryad_refresh}.
 #' @examples
 #' \dontrun{
 #' # Loading dummy data
 #' data("dt_simulated_weekly")
 #' data("dt_prophet_holidays")
-#' # Set the (pre-trained and exported) dryad model JSON file
-#' json_file <- "~/dryad_202208081444_init/dryadModel-2_55_4.json"
+#' # Set the (pre-trained and exported) Robyn model JSON file
+#' json_file <- "~/Robyn_202208081444_init/RobynModel-2_55_4.json"
 #'
 #' # Run \code{dryad_refresh()} with 13 weeks cadence in auto mode
-#' dryad <- dryad_refresh(
+#' Robyn <- dryad_refresh(
 #'   json_file = json_file,
 #'   dt_input = dt_simulated_weekly,
-#'   dt_holidays = dryad::dt_prophet_holidays,
+#'   dt_holidays = Robyn::dt_prophet_holidays,
 #'   refresh_steps = 13,
 #'   refresh_mode = "auto",
 #'   refresh_iters = 200,
@@ -83,11 +83,11 @@
 #' )
 #'
 #' # Run \code{dryad_refresh()} with 4 weeks cadence in manual mode
-#' json_file2 <- "~/dryad_202208081444_init/dryad_202208090847_rf/dryadModel-1_2_3.json"
-#' dryad <- dryad_refresh(
+#' json_file2 <- "~/Robyn_202208081444_init/Robyn_202208090847_rf/RobynModel-1_2_3.json"
+#' Robyn <- dryad_refresh(
 #'   json_file = json_file2,
 #'   dt_input = dt_simulated_weekly,
-#'   dt_holidays = dryad::dt_prophet_holidays,
+#'   dt_holidays = Robyn::dt_prophet_holidays,
 #'   refresh_steps = 4,
 #'   refresh_mode = "manual",
 #'   refresh_iters = 200,
@@ -99,7 +99,7 @@
 dryad_refresh <- function(json_file = NULL,
                           dryad_object = NULL,
                           dt_input = NULL,
-                          dt_holidays = dryad::dt_prophet_holidays,
+                          dt_holidays = Robyn::dt_prophet_holidays,
                           refresh_steps = 4,
                           refresh_mode = "manual",
                           refresh_iters = 1000,
@@ -118,7 +118,7 @@ dryad_refresh <- function(json_file = NULL,
 
     ## Load initial model
     if (!is.null(json_file)) {
-      dryad <- list()
+      Robyn <- list()
       json <- dryad_read(json_file, step = 2, quiet = TRUE)
       listInit <- suppressWarnings(dryad_recreate(
         json_file = json_file,
@@ -131,16 +131,16 @@ dryad_refresh <- function(json_file = NULL,
       listInit$InputCollect$refreshChain <- attr(chainData, "chain")
       listInit$InputCollect$refreshDepth <- refreshDepth <- length(attr(chainData, "chain"))
       listInit$OutputCollect$hyper_updated <- json$ExportedModel$hyper_updated
-      dryad[["listInit"]] <- listInit
+      Robyn[["listInit"]] <- listInit
       objectPath <- json$ExportedModel$plot_folder
       refreshCounter <- 1 # Dummy for now (legacy)
     }
     if (!is.null(dryad_object)) {
-      dryadImported <- dryad_load(dryad_object)
-      dryad <- dryadImported$dryad
-      objectPath <- dryadImported$objectPath
-      dryad_object <- dryadImported$dryad_object
-      refreshCounter <- length(dryad) - sum(names(dryad) == "refresh")
+      RobynImported <- dryad_load(dryad_object)
+      Robyn <- RobynImported$Robyn
+      objectPath <- RobynImported$objectPath
+      dryad_object <- RobynImported$dryad_object
+      refreshCounter <- length(Robyn) - sum(names(Robyn) == "refresh")
       refreshDepth <- NULL # Dummy for now (legacy)
     }
     depth <- ifelse(!is.null(refreshDepth), refreshDepth, refreshCounter)
@@ -150,30 +150,30 @@ dryad_refresh <- function(json_file = NULL,
     } else {
       c("listInit", paste0("listRefresh", 1:(refreshCounter - 1)))
     }
-    if (!all(objectCheck %in% names(dryad))) {
+    if (!all(objectCheck %in% names(Robyn))) {
       stop(
-        "Saved dryad object is corrupted. It should contain these elements:\n ",
+        "Saved Robyn object is corrupted. It should contain these elements:\n ",
         paste(objectCheck, collapse = ", "),
         ".\n Please, re run the model or fix it manually."
       )
     }
 
     ## Check rule of thumb: 50% of data shouldn't be new
-    check_refresh_data(dryad, dt_input)
+    check_refresh_data(Robyn, dt_input)
 
     ## Get previous data
     if (refreshCounter == 1) {
-      InputCollectRF <- dryad$listInit$InputCollect
-      listOutputPrev <- dryad$listInit$OutputCollect
+      InputCollectRF <- Robyn$listInit$InputCollect
+      listOutputPrev <- Robyn$listInit$OutputCollect
       InputCollectRF$xDecompAggPrev <- listOutputPrev$xDecompAgg
-      if (length(unique(dryad$listInit$OutputCollect$resultHypParam$solID)) > 1) {
-        stop("Run dryad_write() first to select and export any dryad model")
+      if (length(unique(Robyn$listInit$OutputCollect$resultHypParam$solID)) > 1) {
+        stop("Run dryad_write() first to select and export any Robyn model")
       }
     } else {
       listName <- paste0("listRefresh", refreshCounter - 1)
-      InputCollectRF <- dryad[[listName]][["InputCollect"]]
-      listOutputPrev <- dryad[[listName]][["OutputCollect"]]
-      listReportPrev <- dryad[[listName]][["ReportCollect"]]
+      InputCollectRF <- Robyn[[listName]][["InputCollect"]]
+      listOutputPrev <- Robyn[[listName]][["OutputCollect"]]
+      listReportPrev <- Robyn[[listName]][["ReportCollect"]]
       ## Model selection from previous build
       if (!"error_score" %in% names(listOutputPrev$resultHypParam)) {
         listOutputPrev$resultHypParam <- as.data.frame(listOutputPrev$resultHypParam) %>%
@@ -263,7 +263,7 @@ dryad_refresh <- function(json_file = NULL,
 
     ## Refresh hyperparameter bounds
     InputCollectRF$hyperparameters <- refresh_hyps(
-      initBounds = dryad$listInit$OutputCollect$hyper_updated,
+      initBounds = Robyn$listInit$OutputCollect$hyper_updated,
       listOutputPrev, refresh_steps,
       rollingWindowLength = InputCollectRF$rollingWindowLength
     )
@@ -274,7 +274,7 @@ dryad_refresh <- function(json_file = NULL,
     InputCollectRF <- dryad_engineering(InputCollectRF, ...)
 
     ## Refresh model with adjusted decomp.rssd
-    # OutputCollectRF <- dryad$listRefresh1$OutputCollect
+    # OutputCollectRF <- Robyn$listRefresh1$OutputCollect
     if (is.null(InputCollectRF$calibration_input)) {
       rf_cal_constr <- listOutputPrev[["calibration_constraint"]]
     } else {
@@ -429,16 +429,16 @@ dryad_refresh <- function(json_file = NULL,
       selectIDs = resultHypParamReport$solID
     )
     listNameUpdate <- paste0("listRefresh", refreshCounter)
-    dryad[[listNameUpdate]] <- list(
+    Robyn[[listNameUpdate]] <- list(
       InputCollect = InputCollectRF,
       OutputCollect = OutputCollectRF,
       ReportCollect = ReportCollect
     )
 
     #### Reporting plots
-    # InputCollectRF <- dryad$listRefresh1$InputCollect
-    # OutputCollectRF <- dryad$listRefresh1$OutputCollect
-    # ReportCollect <- dryad$listRefresh1$ReportCollect
+    # InputCollectRF <- Robyn$listRefresh1$InputCollect
+    # OutputCollectRF <- Robyn$listRefresh1$OutputCollect
+    # ReportCollect <- Robyn$listRefresh1$ReportCollect
     if (!is.null(json_file)) {
       json_temp <- dryad_write(
         InputCollectRF, OutputCollectRF,
@@ -465,7 +465,7 @@ dryad_refresh <- function(json_file = NULL,
   }
 
   # Save some parameters to print
-  dryad[["refresh"]] <- list(
+  Robyn[["refresh"]] <- list(
     selectIDs = ReportCollect$selectIDs,
     refresh_steps = refresh_steps,
     refresh_mode = refresh_mode,
@@ -474,16 +474,16 @@ dryad_refresh <- function(json_file = NULL,
     plots = plots
   )
 
-  # Save dryad object locally
-  dryad <- dryad[order(names(dryad))]
-  class(dryad) <- c("dryad_refresh", class(dryad))
+  # Save Robyn object locally
+  Robyn <- Robyn[order(names(Robyn))]
+  class(Robyn) <- c("dryad_refresh", class(Robyn))
   if (is.null(json_file)) {
     message(">> Exporting results: ", dryad_object)
-    saveRDS(dryad, file = dryad_object)
+    saveRDS(Robyn, file = dryad_object)
   } else {
     dryad_write(InputCollectRF, OutputCollectRF, select_model = selectID, ...)
   }
-  return(invisible(dryad))
+  return(invisible(Robyn))
 }
 
 #' @rdname dryad_refresh

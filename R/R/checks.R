@@ -16,7 +16,7 @@ check_nas <- function(df) {
     strs <- sprintf("%s (%s | %s%%)", naVals$variable, naVals$missing, naVals$missingness)
     stop(paste0(
       "Dataset ", name, " contains missing (NA) values. ",
-      "These values must be removed or fixed for dryad to properly work.\n  Missing values: ",
+      "These values must be removed or fixed for Robyn to properly work.\n  Missing values: ",
       paste(strs, collapse = ", ")
     ))
   }
@@ -24,7 +24,7 @@ check_nas <- function(df) {
   if (any(have_inf > 0)) {
     stop(paste0(
       "Dataset ", name, " contains Inf values. ",
-      "These values must be removed or fixed for dryad to properly work.\n  Check: ",
+      "These values must be removed or fixed for Robyn to properly work.\n  Check: ",
       paste(names(which(have_inf > 0)), collapse = ", ")
     ))
   }
@@ -421,30 +421,24 @@ check_adstock <- function(adstock) {
 
 check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
                                   paid_media_spends = NULL, organic_vars = NULL,
-                                  exposure_vars = NULL) {
-  if (is.null(hyperparameters)) {
+                                  exposure_vars = NULL, quiet = FALSE) {
+  if (is.null(hyperparameters) && !quiet) {
     message(paste(
       "Input 'hyperparameters' not provided yet. To include them, run",
       "dryad_inputs(InputCollect = InputCollect, hyperparameters = ...)"
     ))
   } else {
-    if (!"train_size" %in% names(hyperparameters)) {
-      hyperparameters[["train_size"]] <- c(0.5, 0.8)
-      warning("Automatically added missing hyperparameter range: 'train_size' = c(0.5, 0.8)")
-    }
     # Non-adstock hyperparameters check
     check_train_size(hyperparameters)
     # Adstock hyperparameters check
     hyperparameters_ordered <- hyperparameters[order(names(hyperparameters))]
     get_hyp_names <- names(hyperparameters_ordered)
-    original_order <- sapply(names(hyperparameters), function(x) which(x == get_hyp_names))
     ref_hyp_name_spend <- hyper_names(adstock, all_media = paid_media_spends)
     ref_hyp_name_expo <- hyper_names(adstock, all_media = exposure_vars)
     ref_hyp_name_org <- hyper_names(adstock, all_media = organic_vars)
-    ref_hyp_name_other <- get_hyp_names[get_hyp_names %in% other_hyps]
     # Excluding lambda (first other_hyps) given its range is not customizable
-    ref_all_media <- sort(c(ref_hyp_name_spend, ref_hyp_name_org, other_hyps))
-    all_ref_names <- c(ref_hyp_name_spend, ref_hyp_name_expo, ref_hyp_name_org, other_hyps)
+    ref_all_media <- sort(c(ref_hyp_name_spend, ref_hyp_name_org, other_hyps[-1]))
+    all_ref_names <- c(ref_hyp_name_spend, ref_hyp_name_expo, ref_hyp_name_org, other_hyps[-1])
     if (!all(get_hyp_names %in% all_ref_names)) {
       wrong_hyp_names <- get_hyp_names[which(!(get_hyp_names %in% all_ref_names))]
       stop(
@@ -452,8 +446,8 @@ check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
         paste(wrong_hyp_names, collapse = ", ")
       )
     }
-    total <- length(get_hyp_names)
-    total_in <- length(c(ref_hyp_name_spend, ref_hyp_name_org, ref_hyp_name_other))
+    total <- length(get_hyp_names) - 1 # lambda not included
+    total_in <- length(c(ref_hyp_name_spend, ref_hyp_name_org))
     if (total != total_in) {
       stop(sprintf(
         paste(
@@ -469,13 +463,15 @@ check_hyperparameters <- function(hyperparameters = NULL, adstock = NULL,
       get_hyp_names[get_expo_pos] <- ref_all_media[get_expo_pos]
       names(hyperparameters_ordered) <- get_hyp_names
     }
+    if (!identical(get_hyp_names, ref_all_media)) {
+      stop("Input 'hyperparameters' must contain: ", paste(ref_all_media, collapse = ", "))
+    }
     check_hyper_limits(hyperparameters_ordered, "thetas")
     check_hyper_limits(hyperparameters_ordered, "alphas")
     check_hyper_limits(hyperparameters_ordered, "gammas")
     check_hyper_limits(hyperparameters_ordered, "shapes")
     check_hyper_limits(hyperparameters_ordered, "scales")
-    hyperparameters_unordered <- hyperparameters_ordered[original_order]
-    return(hyperparameters_unordered)
+    return(hyperparameters_ordered)
   }
 }
 
@@ -888,12 +884,12 @@ check_daterange <- function(date_min, date_max, dates) {
   }
 }
 
-check_refresh_data <- function(dryad, dt_input) {
-  original_periods <- nrow(dryad$listInit$InputCollect$dt_modRollWind)
+check_refresh_data <- function(Robyn, dt_input) {
+  original_periods <- nrow(Robyn$listInit$InputCollect$dt_modRollWind)
   new_periods <- nrow(filter(
-    dt_input, get(dryad$listInit$InputCollect$date_var) > dryad$listInit$InputCollect$window_end
+    dt_input, get(Robyn$listInit$InputCollect$date_var) > Robyn$listInit$InputCollect$window_end
   ))
-  it <- dryad$listInit$InputCollect$intervalType
+  it <- Robyn$listInit$InputCollect$intervalType
   if (new_periods > 0.5 * (original_periods + new_periods)) {
     warning(sprintf(
       paste(

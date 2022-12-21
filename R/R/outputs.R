@@ -6,39 +6,39 @@
 ####################################################################
 #' Evaluate Models and Output Results into Local Files
 #'
-#' Pack \code{dryad_plots()}, \code{dryad_csv()}, and \code{dryad_clusters()}
-#' outcomes on \code{dryad_run()} results. When \code{UI=TRUE}, enriched
+#' Pack \code{robyn_plots()}, \code{robyn_csv()}, and \code{robyn_clusters()}
+#' outcomes on \code{robyn_run()} results. When \code{UI=TRUE}, enriched
 #' \code{OutputModels} results with additional plots and objects.
 #'
-#' @param InputCollect,OutputModels \code{dryad_inputs()} and \code{dryad_run()}
+#' @param InputCollect,OutputModels \code{robyn_inputs()} and \code{robyn_run()}
 #' outcomes.
 #' @param pareto_fronts Integer. Number of Pareto fronts for the output.
 #' \code{pareto_fronts = 1} returns the best models trading off \code{NRMSE} &
 #' \code{DECOMP.RSSD}. Increase \code{pareto_fronts} to get more model choices.
-#' \code{pareto_fronts = "auto"} selects the min fronts that dryad at least 100
+#' \code{pareto_fronts = "auto"} selects the min fronts that include at least 100
 #' candidates. To customize this threshold, set value with \code{min_candidates}.
 #' @param calibration_constraint Numeric. Default to 0.1 and allows 0.01-0.1. When
 #' calibrating, 0.1 means top 10% calibrated models are used for pareto-optimal
 #' selection. Lower \code{calibration_constraint} increases calibration accuracy.
 #' @param plot_folder Character. Path for saving plots. Default
-#' to \code{dryad_object} and saves plot in the same directory as \code{dryad_object}.
+#' to \code{robyn_object} and saves plot in the same directory as \code{robyn_object}.
 #' @param plot_pareto Boolean. Set to \code{FALSE} to deactivate plotting
 #' and saving model one-pagers. Used when testing models.
-#' @param clusters Boolean. Apply \code{dryad_clusters()} to output models?
+#' @param clusters Boolean. Apply \code{robyn_clusters()} to output models?
 #' @param select_model Character vector. Which models (by \code{solID}) do you
 #' wish to plot the one-pagers and export? Default will take top
-#' \code{dryad_clusters()} results.
+#' \code{robyn_clusters()} results.
 #' @param csv_out Character. Accepts "pareto" or "all". Default to "pareto". Set
 #' to "all" will output all iterations as csv. Set NULL to skip exports into CSVs.
 #' @param ui Boolean. Save additional outputs for UI usage. List outcome.
 #' @param export Boolean. Export outcomes into local files?
 #' @param quiet Boolean. Keep messages off?
 #' @param refresh Boolean. Refresh mode
-#' @param ... Additional parameters passed to \code{dryad_clusters()}
-#' @return (Invisible) list. Class: \code{dryad_outputs}. Contains processed
-#' results based on \code{dryad_run()} results.
+#' @param ... Additional parameters passed to \code{robyn_clusters()}
+#' @return (Invisible) list. Class: \code{robyn_outputs}. Contains processed
+#' results based on \code{robyn_run()} results.
 #' @export
-dryad_outputs <- function(InputCollect, OutputModels,
+robyn_outputs <- function(InputCollect, OutputModels,
                           pareto_fronts = "auto",
                           calibration_constraint = 0.1,
                           plot_folder = NULL,
@@ -66,7 +66,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
   }
 
   #####################################
-  #### Run dryad_pareto on OutputModels
+  #### Run robyn_pareto on OutputModels
 
   totalModels <- OutputModels$iterations * OutputModels$trials
   if (!isTRUE(attr(OutputModels, "hyper_fixed"))) {
@@ -75,7 +75,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
       totalModels, pareto_fronts, ifelse(pareto_fronts > 1, "s", "")
     ))
   }
-  pareto_results <- dryad_pareto(
+  pareto_results <- robyn_pareto(
     InputCollect, OutputModels,
     pareto_fronts = pareto_fronts,
     calibration_constraint = calibration_constraint,
@@ -101,7 +101,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
   #####################################
   #### Gather the results into output object
 
-  # Auxiliary list with all results (wasn't previously exported but needed for dryad_outputs())
+  # Auxiliary list with all results (wasn't previously exported but needed for robyn_outputs())
   allPareto <- list(
     resultHypParam = pareto_results$resultHypParam,
     xDecompAgg = pareto_results$xDecompAgg,
@@ -120,7 +120,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
       )
     )
     folder_var <- ifelse(!as.integer(depth) > 0, "init", paste0("rf", depth))
-    plot_folder_sub <- paste("dryad", format(Sys.time(), "%Y%m%d%H%M"), folder_var, sep = "_")
+    plot_folder_sub <- paste("Robyn", format(Sys.time(), "%Y%m%d%H%M"), folder_var, sep = "_")
   }
 
   # Final results object
@@ -150,7 +150,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
     hyper_fixed = attr(OutputModels, "hyper_fixed"),
     plot_folder = gsub("//", "", paste0(plot_folder, "/", plot_folder_sub, "/"))
   )
-  class(OutputCollect) <- c("dryad_outputs", class(OutputCollect))
+  class(OutputCollect) <- c("robyn_outputs", class(OutputCollect))
 
   plotPath <- paste0(plot_folder, "/", plot_folder_sub, "/")
   OutputCollect$plot_folder <- gsub("//", "/", plotPath)
@@ -159,7 +159,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
   # Cluster results and amend cluster output
   if (clusters) {
     if (!quiet) message(">>> Calculating clusters for model selection using Pareto fronts...")
-    try(clusterCollect <- dryad_clusters(OutputCollect,
+    try(clusterCollect <- robyn_clusters(OutputCollect,
       dep_var_type = InputCollect$dep_var_type,
       quiet = quiet, export = export, ...
     ))
@@ -210,11 +210,11 @@ dryad_outputs <- function(InputCollect, OutputModels,
         if (!quiet) message(paste0(">>> Collecting ", length(allSolutions), " pareto-optimum results into: ", OutputCollect$plot_folder))
 
         if (!quiet) message(">> Exporting general plots into directory...")
-        all_plots <- dryad_plots(InputCollect, OutputCollect, export = export)
+        all_plots <- robyn_plots(InputCollect, OutputCollect, export = export)
 
         if (csv_out %in% c("all", "pareto")) {
           if (!quiet) message(paste(">> Exporting", csv_out, "results as CSVs into directory..."))
-          dryad_csv(InputCollect, OutputCollect, csv_out, export = export, calibrated = calibrated)
+          robyn_csv(InputCollect, OutputCollect, csv_out, export = export, calibrated = calibrated)
         }
 
         if (plot_pareto) {
@@ -224,7 +224,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
             ))
           }
           select_model <- if (!clusters || is.null(OutputCollect[["clusters"]])) NULL else select_model
-          pareto_onepagers <- dryad_onepagers(
+          pareto_onepagers <- robyn_onepagers(
             InputCollect, OutputCollect,
             select_model = select_model,
             quiet = quiet,
@@ -232,7 +232,7 @@ dryad_outputs <- function(InputCollect, OutputModels,
           )
         }
 
-        dryad_write(InputCollect, dir = OutputCollect$plot_folder, quiet = quiet)
+        robyn_write(InputCollect, dir = OutputCollect$plot_folder, quiet = quiet)
 
         # For internal use -> UI Code
         if (ui && plot_pareto) OutputCollect$UI$pareto_onepagers <- pareto_onepagers
@@ -245,15 +245,15 @@ dryad_outputs <- function(InputCollect, OutputModels,
   }
 
   if (!is.null(OutputModels$hyper_updated)) OutputCollect$hyper_updated <- OutputModels$hyper_updated
-  class(OutputCollect) <- c("dryad_outputs", class(OutputCollect))
+  class(OutputCollect) <- c("robyn_outputs", class(OutputCollect))
   return(invisible(OutputCollect))
 }
 
-#' @rdname dryad_outputs
-#' @aliases dryad_outputs
-#' @param x \code{dryad_outputs()} output.
+#' @rdname robyn_outputs
+#' @aliases robyn_outputs
+#' @param x \code{robyn_outputs()} output.
 #' @export
-print.dryad_outputs <- function(x, ...) {
+print.robyn_outputs <- function(x, ...) {
   print(glued(
     "
 Plot Folder: {x$plot_folder}
@@ -277,14 +277,14 @@ Pareto-front ({x$pareto_fronts}) All solutions ({nSols}): {paste(x$allSolutions,
 ####################################################################
 #' Output results into local files: CSV files
 #'
-#' @param OutputCollect \code{dryad_run(..., export = FALSE)} output.
+#' @param OutputCollect \code{robyn_run(..., export = FALSE)} output.
 #' @param calibrated Logical
-#' @rdname dryad_outputs
+#' @rdname robyn_outputs
 #' @return Invisible \code{NULL}.
 #' @export
-dryad_csv <- function(InputCollect, OutputCollect, csv_out = NULL, export = TRUE, calibrated = FALSE) {
+robyn_csv <- function(InputCollect, OutputCollect, csv_out = NULL, export = TRUE, calibrated = FALSE) {
   if (export) {
-    check_class("dryad_outputs", OutputCollect)
+    check_class("robyn_outputs", OutputCollect)
     temp_all <- OutputCollect$allPareto
     if ("pareto" %in% csv_out) {
       write.csv(OutputCollect$resultHypParam, paste0(OutputCollect$plot_folder, "pareto_hyperparameters.csv"))
@@ -307,4 +307,3 @@ dryad_csv <- function(InputCollect, OutputCollect, csv_out = NULL, export = TRUE
     }
   }
 }
- 

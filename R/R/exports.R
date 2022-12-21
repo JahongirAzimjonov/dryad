@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Export dryad Model to Local File [DEPRECATED]
+#' Export Robyn Model to Local File [DEPRECATED]
 #'
 #' Use \code{dryad_save()} to select and save as .RDS file the initial model.
 #'
@@ -103,11 +103,11 @@ dryad_save <- function(InputCollect,
 
   InputCollect$refreshCounter <- 0
   listInit <- list(InputCollect = InputCollect, OutputCollect = OutputCollect)
-  dryad <- list(listInit = listInit)
+  Robyn <- list(listInit = listInit)
 
-  class(dryad) <- c("dryad_exported", class(dryad))
+  class(Robyn) <- c("dryad_exported", class(Robyn))
   if (!is.null(dryad_object)) {
-    saveRDS(dryad, file = dryad_object)
+    saveRDS(Robyn, file = dryad_object)
     if (!quiet) message("Exported results: ", dryad_object)
   }
   return(invisible(output))
@@ -167,9 +167,9 @@ plot.dryad_save <- function(x, ...) plot(x$plot[[1]], ...)
 #' @export
 dryad_load <- function(dryad_object, select_build = NULL, quiet = FALSE) {
   if ("dryad_exported" %in% class(dryad_object) || is.list(dryad_object)) {
-    dryad <- dryad_object
-    objectPath <- dryad$listInit$OutputCollect$plot_folder
-    dryad_object <- paste0(objectPath, "/dryad_", dryad$listInit$OutputCollect$selectID, ".RDS")
+    Robyn <- dryad_object
+    objectPath <- Robyn$listInit$OutputCollect$plot_folder
+    dryad_object <- paste0(objectPath, "/Robyn_", Robyn$listInit$OutputCollect$selectID, ".RDS")
     if (!dir.exists(objectPath)) {
       stop("Directory does not exist or is somewhere else. Check: ", objectPath)
     }
@@ -178,10 +178,10 @@ dryad_load <- function(dryad_object, select_build = NULL, quiet = FALSE) {
       stop("Input 'dryad_object' must be a character input or 'dryad_exported' object")
     }
     check_dryad_name(dryad_object, quiet)
-    dryad <- readRDS(dryad_object)
+    Robyn <- readRDS(dryad_object)
     objectPath <- dirname(dryad_object)
   }
-  select_build_all <- 0:(length(dryad) - 1)
+  select_build_all <- 0:(length(Robyn) - 1)
   if (is.null(select_build)) {
     select_build <- max(select_build_all)
     if (!quiet) {
@@ -195,11 +195,11 @@ dryad_load <- function(dryad_object, select_build = NULL, quiet = FALSE) {
     stop("Input 'select_build' must be one value of ", paste(select_build_all, collapse = ", "))
   }
   listName <- ifelse(select_build == 0, "listInit", paste0("listRefresh", select_build))
-  InputCollect <- dryad[[listName]][["InputCollect"]]
-  OutputCollect <- dryad[[listName]][["OutputCollect"]]
+  InputCollect <- Robyn[[listName]][["InputCollect"]]
+  OutputCollect <- Robyn[[listName]][["OutputCollect"]]
   select_model <- OutputCollect$selectID
   output <- list(
-    dryad = dryad,
+    Robyn = Robyn,
     InputCollect = InputCollect,
     OutputCollect = OutputCollect,
     select_model = select_model,

@@ -19,7 +19,7 @@
 #'    that are considered ground truth to calibrate MMM. Usual experiment
 #'    types are people-based (e.g. Facebook conversion lift) and
 #'    geo-based (e.g. Facebook GeoLift).
-#'    \item Currently, dryad only accepts point-estimate as calibration
+#'    \item Currently, Robyn only accepts point-estimate as calibration
 #'    input. For example, if 10k$ spend is tested against a hold-out
 #'    for channel A, then input the incremental return as point-estimate
 #'    as the example below.
@@ -124,8 +124,8 @@
 #' @examples
 #' # Using dummy simulated data
 #' InputCollect <- dryad_inputs(
-#'   dt_input = dryad::dt_simulated_weekly,
-#'   dt_holidays = dryad::dt_prophet_holidays,
+#'   dt_input = Robyn::dt_simulated_weekly,
+#'   dt_holidays = Robyn::dt_prophet_holidays,
 #'   date_var = "DATE",
 #'   dep_var = "revenue",
 #'   dep_var_type = "revenue",
@@ -145,12 +145,12 @@
 #' )
 #' print(InputCollect)
 #' @return List. Contains all input parameters and modified results
-#' using \code{dryad:::dryad_engineering()}. This list is ready to be
+#' using \code{Robyn:::dryad_engineering()}. This list is ready to be
 #' used on other functions like \code{dryad_run()} and \code{print()}.
 #' Class: \code{dryad_inputs}.
 #' @export
 dryad_inputs <- function(dt_input = NULL,
-                         dt_holidays = dryad::dt_prophet_holidays,
+                         dt_holidays = Robyn::dt_prophet_holidays,
                          date_var = "auto",
                          dep_var = NULL,
                          dep_var_type = NULL,
@@ -259,6 +259,11 @@ dryad_inputs <- function(dt_input = NULL,
     ## Check adstock
     adstock <- check_adstock(adstock)
 
+    ## Check hyperparameters (if passed)
+    hyperparameters <- check_hyperparameters(
+      hyperparameters, adstock, paid_media_spends, organic_vars, exposure_vars
+    )
+
     ## Check calibration and iters/trials
     calibration_input <- check_calibration(
       dt_input, date_var, calibration_input, dayInterval, dep_var,
@@ -316,11 +321,6 @@ dryad_inputs <- function(dt_input = NULL,
     if (!is.null(hyperparameters)) {
       ### Conditional output 1.2
       ## Running dryad_inputs() for the 1st time & 'hyperparameters' provided --> run dryad_engineering()
-
-      ## Check hyperparameters
-      hyperparameters <- check_hyperparameters(
-        hyperparameters, adstock, paid_media_spends, organic_vars, exposure_vars
-      )
       InputCollect <- dryad_engineering(InputCollect, ...)
     }
   } else {
@@ -351,8 +351,7 @@ dryad_inputs <- function(dt_input = NULL,
       ## 'hyperparameters' provided --> run dryad_engineering()
       ## Update & check hyperparameters
       if (is.null(InputCollect$hyperparameters)) InputCollect$hyperparameters <- hyperparameters
-      InputCollect$hyperparameters <- check_hyperparameters(
-        InputCollect$hyperparameters, InputCollect$adstock, InputCollect$all_media)
+      check_hyperparameters(InputCollect$hyperparameters, InputCollect$adstock, InputCollect$all_media)
       InputCollect <- dryad_engineering(InputCollect, ...)
     }
   }
@@ -362,13 +361,13 @@ dryad_inputs <- function(dt_input = NULL,
     InputCollect <- append(InputCollect, json$InputCollect[pending])
   }
 
-  # Save R and dryad's versions
+  # Save R and Robyn's versions
   if (TRUE) {
-    ver <- as.character(utils::packageVersion("dryad"))
+    ver <- as.character(utils::packageVersion("Robyn"))
     rver <- utils::sessionInfo()$R.version
-    origin <- ifelse(is.null(utils::packageDescription("dryad")$Repository), "dev", "stable")
+    origin <- ifelse(is.null(utils::packageDescription("Robyn")$Repository), "dev", "stable")
     InputCollect$version <- sprintf(
-      "dryad (%s) v%s [R-%s.%s]",
+      "Robyn (%s) v%s [R-%s.%s]",
       origin, ver, rver$major, rver$minor
     )
   }
@@ -543,7 +542,7 @@ hyper_limits <- function() {
     thetas = c(">=0", "<1"),
     alphas = c(">0", "<10"),
     gammas = c(">0", "<=1"),
-    shapes = c(">=0", "<20"),
+    shapes = c(">0", "<20"),
     scales = c(">=0", "<=1")
   )
 }
@@ -936,7 +935,7 @@ fit_spend_exposure <- function(dt_spendModInput, mediaCostFactor, paid_media_var
 ####################################################################
 #' Detect and set date variable interval
 #'
-#' dryad only accepts daily, weekly and monthly data. This function
+#' Robyn only accepts daily, weekly and monthly data. This function
 #' is only called in \code{dryad_engineering()}.
 #'
 #' @param dt_transform A data.frame. Transformed input data.

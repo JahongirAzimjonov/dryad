@@ -11,7 +11,7 @@
 #'
 #' @inheritParams dryad_run
 #' @inheritParams dryad_outputs
-#' @param dryad_object Character or List. Path of the \code{dryad.RDS} object
+#' @param dryad_object Character or List. Path of the \code{Robyn.RDS} object
 #' that contains all previous modeling information or the imported list.
 #' @param select_build Integer. Default to the latest model build. \code{select_build = 0}
 #' selects the initial model. \code{select_build = 1} selects the first refresh model.
@@ -57,7 +57,7 @@
 #' \dontrun{
 #' # Having InputCollect and OutputCollect results
 #' # Set your exported model location
-#' dryad_object <- "~/Desktop/Mydryad.RDS"
+#' dryad_object <- "~/Desktop/MyRobyn.RDS"
 #'
 #' # Check media summary for selected model from the simulated data
 #' select_model <- "3_10_3"
@@ -280,7 +280,7 @@ dryad_allocator <- function(dryad_object = NULL,
     expSpendUnitTotal = expSpendUnitTotal
   )
   # So we can implicitly use these values within eval_f()
-  options("dryad_TEMP" = eval_list)
+  options("ROBYN_TEMP" = eval_list)
 
   # eval_f(c(1,1))
   # $objective
@@ -357,7 +357,7 @@ dryad_allocator <- function(dryad_object = NULL,
     optmResponseUnitLift = (-eval_f(nlsMod$solution)[["objective.channel"]] / histResponseUnitModel) - 1
   ) %>%
     mutate(optmResponseUnitTotalLift = (.data$optmResponseUnitTotal / .data$initResponseUnitTotal) - 1)
-  .Options$dryad_TEMP <- NULL # Clean auxiliary method
+  .Options$ROBYN_TEMP <- NULL # Clean auxiliary method
 
   ## Plot allocator results
   plots <- allocation_plots(InputCollect, OutputCollect, dt_optimOut, select_model, scenario, export, quiet)
@@ -450,7 +450,7 @@ plot.dryad_allocator <- function(x, ...) plot(x$plots$plots, ...)
 
 eval_f <- function(X) {
   # eval_list <- get("eval_list", pos = as.environment(-1))
-  eval_list <- getOption("dryad_TEMP")
+  eval_list <- getOption("ROBYN_TEMP")
   # mm_lm_coefs <- eval_list[["mm_lm_coefs"]]
   coefsFiltered <- eval_list[["coefsFiltered"]]
   alphas <- eval_list[["alphas"]]
@@ -561,7 +561,7 @@ eval_f <- function(X) {
 }
 
 eval_g_eq <- function(X) {
-  eval_list <- getOption("dryad_TEMP")
+  eval_list <- getOption("ROBYN_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(
@@ -571,7 +571,7 @@ eval_g_eq <- function(X) {
 }
 
 eval_g_ineq <- function(X) {
-  eval_list <- getOption("dryad_TEMP")
+  eval_list <- getOption("ROBYN_TEMP")
   constr <- sum(X) - eval_list$expSpendUnitTotal
   grad <- rep(1, length(X))
   return(list(

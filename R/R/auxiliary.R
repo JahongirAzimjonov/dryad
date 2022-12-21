@@ -22,7 +22,7 @@ get_rsq <- function(true, predicted, p = NULL, df.int = NULL, n_train = NULL) {
   return(rsq_out)
 }
 
-# dryad colors
+# Robyn colors
 dryad_palette <- function() {
   pal <- c(
     "#21130d", "#351904", "#543005", "#8C510A", "#BF812D", "#DFC27D", "#F6E8C3",
@@ -49,12 +49,12 @@ flatten_hyps <- function(x) {
 }
 
 ####################################################################
-#' Update dryad Version
+#' Update Robyn Version
 #'
-#' Update dryad version from
-#' \href{https://github.com/facebookexperimental/dryad}{Github repository}
+#' Update Robyn version from
+#' \href{https://github.com/facebookexperimental/Robyn}{Github repository}
 #' for latest "dev" version or from
-#' \href{https://cran.r-project.org/web/packages/dryad/index.html}{CRAN}
+#' \href{https://cran.r-project.org/web/packages/Robyn/index.html}{CRAN}
 #' for latest "stable" version.
 #'
 #' @param dev Boolean. Dev version? If not, CRAN version.
@@ -66,8 +66,8 @@ dryad_update <- function(dev = TRUE, ...) {
   if (dev) {
     try_require("remotes")
     # options(timeout = 400)
-    install_github(repo = "facebookexperimental/dryad/R", ...)
+    install_github(repo = "facebookexperimental/Robyn/R", ...)
   } else {
-    utils::install.packages("dryad", ...)
+    utils::install.packages("Robyn", ...)
   }
 }

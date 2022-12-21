@@ -4,16 +4,20 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' dryad MMM Project from Meta Marketing Science
+#' Robyn MMM Project from Meta Marketing Science
 #'
-#' dryad is an automated Marketing Mix Modeling (MMM) code. It aims to reduce human
+#' Robyn is an automated Marketing Mix Modeling (MMM) code. It aims to reduce human
 #' bias by means of ridge regression and evolutionary algorithms, enables actionable
 #' decision making providing a budget allocator and diminishing returns curves and
 #' allows ground-truth calibration to account for causation.
 #'
 #' @md
-#' @name dryad
+#' @name Robyn
 #' @docType package
+#' @author Gufeng Zhou (gufeng@@meta.com)
+#' @author Leonel Sentana (leonelsentana@@meta.com)
+#' @author Igor Skokan (igorskokan@@meta.com)
+#' @author Bernardo Lares (bernardolares@@meta.com)
 #' @importFrom doRNG %dorng%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #' @importFrom dplyr across any_of arrange as_tibble bind_rows contains desc distinct everything filter

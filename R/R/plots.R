@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' Generate and Export dryad Plots
+#' Generate and Export Robyn Plots
 #'
 #' @rdname dryad_outputs
 #' @return Invisible list with \code{ggplot} plots.
@@ -228,7 +228,7 @@ dryad_plots <- function(InputCollect, OutputCollect, export = TRUE, ...) {
 
 
 ####################################################################
-#' Generate and Export dryad One-Pager Plots
+#' Generate and Export Robyn One-Pager Plots
 #'
 #' @inheritParams dryad_outputs
 #' @inheritParams dryad_csv
@@ -557,10 +557,10 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
       }
 
       ## Aggregate one-pager plots and export
-      ver <- as.character(utils::packageVersion("dryad"))
+      ver <- as.character(utils::packageVersion("Robyn"))
       rver <- utils::sessionInfo()$R.version
       onepagerTitle <- sprintf("One-pager for Model ID: %s", sid)
-      onepagerCaption <- sprintf("dryad v%s [R-%s.%s]", ver, rver$major, rver$minor)
+      onepagerCaption <- sprintf("Robyn v%s [R-%s.%s]", ver, rver$major, rver$minor)
       pg <- wrap_plots(p2, p5, p1, p8, p3, p7, p4, p6, ncol = 2) +
         plot_annotation(
           title = onepagerTitle, subtitle = errors,
@@ -576,18 +576,18 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
           dpi = 400, width = 17, height = 19
         )
       }
-      if (check_parallel_plot() && !quiet && count_mod_out > 1) {
+      if (check_parallel_plot() && !quiet && count_mod_out > 0) {
         cnt <- cnt + 1
         setTxtProgressBar(pbplot, cnt)
       }
       return(all_plots)
     }
-    if (!quiet && count_mod_out > 1) {
+    if (!quiet && count_mod_out > 0) {
       cnt <- cnt + length(uniqueSol)
       setTxtProgressBar(pbplot, cnt)
     }
   }
-  if (!quiet && count_mod_out > 1) close(pbplot)
+  if (!quiet && count_mod_out > 0) close(pbplot)
   # Stop cluster to avoid memory leaks
   if (check_parallel_plot()) stopImplicitCluster()
   return(invisible(parallelResult[[1]]))
@@ -1083,6 +1083,7 @@ refresh_plots_json <- function(OutputCollectRF, json_file, export = TRUE) {
 #' @export
 ts_validation <- function(OutputModels, quiet = FALSE, ...) {
   if (!isTRUE(OutputModels$ts_validation)) {
+    if (!quiet) warning("Validation was not turned on when training these models. Set: 'ts_validation = TRUE'")
     return(NULL)
   }
   resultHypParam <- bind_rows(
