@@ -12,7 +12,7 @@ Dryad extends Robyn by performing bootstrapped ridge regressions for the same mo
 
 Dryad further extends Robyn by adding diagnostics, visuals, augmented numerical outputs, and a forecasting function. To help uncover causal interdependencies from observational data (one of the great challenges of nonlinear time series analysis!), we use the popular Shannon-entropy based Transfer Entropy, which represents a prominent tool for assessing directed information flow between joint processes.
 
-## Why the bootstrap?
+## The bootstrap
 
 We are all used to looking at point estimates, which dangerously omit any information about the uncertainty of that estimate. Statistics is about inferring something from our sample about a population we do not have access to, so being able to understand how uncertain our sample statistic is will help us make better inferences about the population. One effective way to estimate the sampling distribution of a statistic is to draw additional samples (with replacement) from the sample itself and recalculate the statistic for each resample. This procedure is called the bootstrap. This procedure offers two advantages simultaneously. First, the bootstrap is a flexible resampling-based alternative for quantifying uncertainty. Second, it allows us to build on top of Robyn's GlmNet, rather than replcaing it. This helps us to obtain estimates that are consistent over time, which is useful for running refresh models. 
   
