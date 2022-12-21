@@ -254,7 +254,7 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
   }
 
   # Prepare for parallel plotting
-  if (check_parallel_plot()) registerDoParallel(OutputCollect$cores) else registerDoSEQ()
+  if (check_parallel_plot() && OutputCollect$cores > 1) registerDoParallel(OutputCollect$cores) else registerDoSEQ()
   if (!hyper_fixed) {
     pareto_fronts_vec <- 1:pareto_fronts
     count_mod_out <- nrow(resultHypParam[resultHypParam$dryadPareto %in% pareto_fronts_vec, ])
@@ -576,18 +576,18 @@ dryad_onepagers <- function(InputCollect, OutputCollect, select_model = NULL, qu
           dpi = 400, width = 17, height = 19
         )
       }
-      if (check_parallel_plot() && !quiet && count_mod_out > 0) {
+      if (check_parallel_plot() && !quiet && count_mod_out > 1) {
         cnt <- cnt + 1
         setTxtProgressBar(pbplot, cnt)
       }
       return(all_plots)
     }
-    if (!quiet && count_mod_out > 0) {
+    if (!quiet && count_mod_out > 1) {
       cnt <- cnt + length(uniqueSol)
       setTxtProgressBar(pbplot, cnt)
     }
   }
-  if (!quiet && count_mod_out > 0) close(pbplot)
+  if (!quiet && count_mod_out > 1) close(pbplot)
   # Stop cluster to avoid memory leaks
   if (check_parallel_plot()) stopImplicitCluster()
   return(invisible(parallelResult[[1]]))
@@ -1083,7 +1083,6 @@ refresh_plots_json <- function(OutputCollectRF, json_file, export = TRUE) {
 #' @export
 ts_validation <- function(OutputModels, quiet = FALSE, ...) {
   if (!isTRUE(OutputModels$ts_validation)) {
-    if (!quiet) warning("Validation was not turned on when training these models. Set: 'ts_validation = TRUE'")
     return(NULL)
   }
   resultHypParam <- bind_rows(
