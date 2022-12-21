@@ -5,9 +5,8 @@ packageVersion("dryad")
 library(readxl)
 Sys.setenv(R_FUTURE_FORK_ENABLE = "true") ## Force multicore 
 options(future.fork.enable = TRUE)
-
 # setwd("C:/Users/charl/Documents/dryad") # set WD
-setwd("P:/charles.shaw/EA/DATA/dryad)")
+setwd("P:/charles.shaw/EA/DATA/dryad")
 
 mydata <- read_excel("demo_data_1.xlsx", sheet = "data")
 
@@ -51,7 +50,7 @@ plot_saturation(plot = FALSE)
 # Run hyper_limits() to check maximum upper and lower bounds by range
 # Example hyperparameters ranges for Geometric adstock
 hyperparameters <- list(
-   tv_spend_alphas = c(0.5, 3)
+  tv_spend_alphas = c(0.5, 3)
   ,tv_spend_gammas = c(0.3, 1)
   ,tv_spend_thetas = c(0.3, 0.8)
   
@@ -71,7 +70,7 @@ hyperparameters <- list(
   ,newsletter_gammas = c(0.3, 1)
   ,newsletter_thetas = c(0.1, 0.4)
   
-### new feature, uncomment below line if using legacy version
+  ### new feature, uncomment below line if using legacy version
   ,train_size = c(0.5, 0.8)
   
 )
@@ -100,6 +99,9 @@ OutputModels <- dryad_run(
   add_penalty_factor = FALSE # Experimental feature. Use with caution.
 )
 
+## Check MOO (multi-objective optimization) convergence plots
+OutputModels$convergence$moo_distrb_plot
+
 # uncomment next line to print results
 # print(OutputModels)
 
@@ -121,8 +123,6 @@ OutputCollect <- dryad_outputs(
 )
 
 ## Check MOO (multi-objective optimization) convergence plots
-# Read more about convergence rules: ?dryad_converge
-OutputModels$convergence$moo_distrb_plot
 OutputModels$convergence$moo_cloud_plot
 
 # uncomment next line to print results
