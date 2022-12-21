@@ -275,7 +275,7 @@ Pareto-front ({x$pareto_fronts}) All solutions ({nSols}): {paste(x$allSolutions,
 
 
 ####################################################################
-#' Output results into local files: CSV files
+#' Output results into local files: CSV files 
 #'
 #' @param OutputCollect \code{dryad_run(..., export = FALSE)} output.
 #' @param calibrated Logical
