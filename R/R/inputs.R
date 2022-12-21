@@ -361,13 +361,13 @@ dryad_inputs <- function(dt_input = NULL,
     InputCollect <- append(InputCollect, json$InputCollect[pending])
   }
 
-  # Save R and Robyn's versions
+  # Save R and dryad's versions
   if (TRUE) {
-    ver <- as.character(utils::packageVersion("Robyn"))
+    ver <- as.character(utils::packageVersion("dryad"))
     rver <- utils::sessionInfo()$R.version
-    origin <- ifelse(is.null(utils::packageDescription("Robyn")$Repository), "dev", "stable")
+    origin <- ifelse(is.null(utils::packageDescription("dryad")$Repository), "dev", "stable")
     InputCollect$version <- sprintf(
-      "Robyn (%s) v%s [R-%s.%s]",
+      "dryad (%s) v%s [R-%s.%s]",
       origin, ver, rver$major, rver$minor
     )
   }
@@ -935,7 +935,7 @@ fit_spend_exposure <- function(dt_spendModInput, mediaCostFactor, paid_media_var
 ####################################################################
 #' Detect and set date variable interval
 #'
-#' Robyn only accepts daily, weekly and monthly data. This function
+#' dryad only accepts daily, weekly and monthly data. This function
 #' is only called in \code{dryad_engineering()}.
 #'
 #' @param dt_transform A data.frame. Transformed input data.
