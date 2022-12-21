@@ -8,7 +8,7 @@
 #'
 #' @description
 #' \code{dryad_refresh()} builds updated models based on
-#' the previously built models saved in the \code{Robyn.RDS} object specified
+#' the previously built models saved in the \code{dryad.RDS} object specified
 #' in \code{dryad_object}. For example, when updating the initial build with 4
 #' weeks of new data, \code{dryad_refresh()} consumes the selected model of
 #' the initial build, sets lower and upper bounds of hyperparameters for the
@@ -44,7 +44,7 @@
 #' model build move forward. For example, \code{refresh_steps = 4} on weekly data
 #' means the \code{InputCollect$window_start} & \code{InputCollect$window_end}
 #' move forward 4 weeks. If \code{refresh_steps} is smaller than the number of
-#' newly provided data points, then Robyn would only use the first N steps of the
+#' newly provided data points, then dryad would only use the first N steps of the
 #' new data.
 #' @param refresh_mode Character. Options are "auto" and "manual". In auto mode,
 #' the \code{dryad_refresh()} function builds refresh models with given
