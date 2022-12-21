@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ####################################################################
-#' dryad Modelling Function
+#' Robyn Modelling Function
 #'
 #' \code{dryad_run()} consumes \code{dryad_input()} outputs,
 #' runs \code{dryad_mmm()}, and collects all modeling results.
@@ -30,7 +30,7 @@
 #' "DiscreteOnePlusOne", "PortfolioDiscreteOnePlusOne", "NaiveTBPSA",
 #' "cGA", "RandomSearch")}.
 #' @param intercept_sign Character. Choose one of "non_negative" (default) or
-#' "unconstrained". By default, if intercept is negative, dryad will drop intercept
+#' "unconstrained". By default, if intercept is negative, Robyn will drop intercept
 #' and refit the model. Consider changing intercept_sign to "unconstrained" when
 #' there are \code{context_vars} with large positive values.
 #' @param seed Integer. For reproducible results when running nevergrad.
@@ -242,7 +242,7 @@ Pareto-front ({x$pareto_fronts}) All solutions ({nSols}): {paste(x$allSolutions,
 }
 
 ####################################################################
-#' Train dryad Models
+#' Train Robyn Models
 #'
 #' \code{dryad_train()} consumes output from \code{dryad_input()}
 #' and runs the \code{dryad_mmm()} on each trial.
@@ -329,7 +329,7 @@ dryad_train <- function(InputCollect, hyper_collect,
             "This trial contains", num_coef0_mod, "iterations with all media coefficient = 0.",
             "Please reconsider your media variable choice if the pareto choices are unreasonable.",
             "\n   Recommendations:",
-            "\n1. Increase hyperparameter ranges for 0-coef channels to give dryad more freedom",
+            "\n1. Increase hyperparameter ranges for 0-coef channels to give Robyn more freedom",
             "\n2. Split media into sub-channels, and/or aggregate similar channels, and/or introduce other media",
             "\n3. Increase trials to get more samples"
           ))
