@@ -1320,7 +1320,6 @@ hyper_collector <- function(InputCollect, hyper_in, ts_validation, add_penalty_f
     all_fixed = all_fixed
   ))
 }
-
 init_msgs_run <- function(InputCollect, refresh, lambda_control = NULL, quiet = FALSE) {
   if (!is.null(lambda_control)) {
     message("Input 'lambda_control' deprecated in v3.6.0; lambda is now selected by hyperparameter optimization")
