@@ -22,7 +22,7 @@ get_rsq <- function(true, predicted, p = NULL, df.int = NULL, n_train = NULL) {
   return(rsq_out)
 }
 
-# Robyn colors
+# dryad colors
 dryad_palette <- function() {
   pal <- c(
     "#21130d", "#351904", "#543005", "#8C510A", "#BF812D", "#DFC27D", "#F6E8C3",
@@ -49,15 +49,7 @@ flatten_hyps <- function(x) {
 }
 
 ####################################################################
-#' Update Robyn Version
-#'
-#' Update Robyn version from
-#' \href{https://github.com/facebookexperimental/Robyn}{Github repository}
-#' for latest "dev" version or from
-#' \href{https://cran.r-project.org/web/packages/Robyn/index.html}{CRAN}
-#' for latest "stable" version.
-#'
-#' @param dev Boolean. Dev version? If not, CRAN version.
+
 #' @param ... Parameters to pass to \code{remotes::install_github}
 #' or \code{utils::install.packages}, depending on \code{dev} parameter.
 #' @return Invisible \code{NULL}.
