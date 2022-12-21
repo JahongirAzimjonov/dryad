@@ -1,3 +1,4 @@
+# remotes::install_github("hemicontinuous/dryad/R")
 library(dryad)
 packageVersion("dryad")
 library(readxl)
@@ -47,28 +48,28 @@ plot_saturation(plot = FALSE)
 # Run hyper_limits() to check maximum upper and lower bounds by range
 # Example hyperparameters ranges for Geometric adstock
 hyperparameters <- list(
-  tv_spend_alphas = c(0.5, 3),
-  tv_spend_gammas = c(0.3, 1),
-  tv_spend_thetas = c(0.3, 0.8),
+   tv_spend_alphas = c(0.5, 3)
+  ,tv_spend_gammas = c(0.3, 1)
+  ,tv_spend_thetas = c(0.3, 0.8)
   
-  facebook_spend_alphas = c(0.5, 3),
-  facebook_spend_gammas = c(0.3, 1),
-  facebook_spend_thetas = c(0, 0.3),
+  ,facebook_spend_alphas = c(0.5, 3)
+  ,facebook_spend_gammas = c(0.3, 1)
+  ,facebook_spend_thetas = c(0, 0.3)
   
-  social_spend_alphas = c(0.5, 3),
-  social_spend_gammas = c(0.3, 1),
-  social_spend_thetas = c(0, 0.3),
+  ,social_spend_alphas = c(0.5, 3)
+  ,social_spend_gammas = c(0.3, 1)
+  ,social_spend_thetas = c(0, 0.3)
   
-  search_spend_alphas = c(0.5, 3),
-  search_spend_gammas = c(0.3, 1),
-  search_spend_thetas = c(0, 0.3),
+  ,search_spend_alphas = c(0.5, 3)
+  ,search_spend_gammas = c(0.3, 1)
+  ,search_spend_thetas = c(0, 0.3)
   
-  newsletter_alphas = c(0.5, 3),
-  newsletter_gammas = c(0.3, 1),
-  newsletter_thetas = c(0.1, 0.4),
+  ,newsletter_alphas = c(0.5, 3)
+  ,newsletter_gammas = c(0.3, 1)
+  ,newsletter_thetas = c(0.1, 0.4)
   
-### ### ###
-  train_size = c(0.5, 0.8)
+### new feature, uncomment below line if using legacy version
+  ,train_size = c(0.5, 0.8)
   
 )
 
@@ -124,5 +125,5 @@ OutputModels$convergence$moo_cloud_plot
 # uncomment next line to print results
 # print(OutputCollect)
 
-### DIAGNOSTICS
+### new feature: DIAGNOSTICS
 run_diagnostics(mydata)
