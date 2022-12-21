@@ -16,7 +16,7 @@ check_nas <- function(df) {
     strs <- sprintf("%s (%s | %s%%)", naVals$variable, naVals$missing, naVals$missingness)
     stop(paste0(
       "Dataset ", name, " contains missing (NA) values. ",
-      "These values must be removed or fixed for Robyn to properly work.\n  Missing values: ",
+      "These values must be removed or fixed for dryad to properly work.\n  Missing values: ",
       paste(strs, collapse = ", ")
     ))
   }
@@ -24,7 +24,7 @@ check_nas <- function(df) {
   if (any(have_inf > 0)) {
     stop(paste0(
       "Dataset ", name, " contains Inf values. ",
-      "These values must be removed or fixed for Robyn to properly work.\n  Check: ",
+      "These values must be removed or fixed for dryad to properly work.\n  Check: ",
       paste(names(which(have_inf > 0)), collapse = ", ")
     ))
   }
@@ -884,12 +884,12 @@ check_daterange <- function(date_min, date_max, dates) {
   }
 }
 
-check_refresh_data <- function(Robyn, dt_input) {
-  original_periods <- nrow(Robyn$listInit$InputCollect$dt_modRollWind)
+check_refresh_data <- function(dryad, dt_input) {
+  original_periods <- nrow(dryad$listInit$InputCollect$dt_modRollWind)
   new_periods <- nrow(filter(
-    dt_input, get(Robyn$listInit$InputCollect$date_var) > Robyn$listInit$InputCollect$window_end
+    dt_input, get(dryad$listInit$InputCollect$date_var) > dryad$listInit$InputCollect$window_end
   ))
-  it <- Robyn$listInit$InputCollect$intervalType
+  it <- dryad$listInit$InputCollect$intervalType
   if (new_periods > 0.5 * (original_periods + new_periods)) {
     warning(sprintf(
       paste(
