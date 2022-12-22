@@ -128,5 +128,6 @@ OutputModels$convergence$moo_cloud_plot
 # uncomment next line to print results
 # print(OutputCollect)
 
-### new feature: DIAGNOSTICS
+### DIAGNOSTICS / FORECAST
 run_diagnostics(mydata)
+run_forecasting(mydata, 30)
