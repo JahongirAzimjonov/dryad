@@ -81,7 +81,7 @@ run_forecasting <- function(mydata, testLenInWeek){
 makeNStepForcast <- function(exceldata, testLenthsInWeeks, variableOfInterest){
   dfdata = data.frame(exceldata)
   
-  df = data.frame(ds=dfdata$DATE, y=dfdata[,c(variableOfInterest)])
+  df = data.frame(ds=dfdata$DATE, y=dfdata[,variableOfInterest])
   trainLenthsInWeeks <- nrow(df) - testLenthsInWeeks
   
   df_train <- df[1:(nrow(df) - testLenthsInWeeks), ]
