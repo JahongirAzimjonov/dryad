@@ -20,7 +20,7 @@ library(prophet)
 library(dplyr)
 library(reshape)
 
-write_forecasting_res_to_excel_file <- function(excel_output_dir, excel_file_name, forcasted_df){
+write_forecasting_res_to_excel_file <- function(excel_output_dir, excel_file_name, forecasted_df){
   forcast_excel_output_file_path <- paste(excel_output_dir, '/', excel_file_name, '.xlsx', sep="")
   
   wb_df <- createWorkbook()
@@ -55,7 +55,7 @@ run_forecasting <- function(mydata, testLenInWeek){
   varOfInterest = my_depvar_name
   my_depvar <- mydata[[my_depvar_name]]
   
-  # Creating main directory inside dryad results folder. In my case, it is in the Desktop folder.
+  # Creating main directory inside Robyn results folder. In my case, it is in the Desktop folder.
   forecast_res_output_dir <- paste0(OutputCollect$plot_folder,"Forecasting")
   forecast_res_output_dir
   
@@ -69,8 +69,8 @@ run_forecasting <- function(mydata, testLenInWeek){
   plt_output_dir <- create_plt_output_dir(forecast_res_output_dir, dirs_for_plt)
   plt_output_dir
 
-  makeForecasting <- makeNStepForcast(data, testLenInWeek, varOfInterest)
-  # makeForecasting
+  makeForecasting <- makeNStepForcast(mydata, testLenInWeek, varOfInterest)
+  plot(makeForecasting$plottedRes)
   forecasted_df <- makeForecasting$forecastedRes
   write_forecasting_res_to_excel_file(excel_output_dir = csv_output_dir, excel_file_name = "ForecastingResults", forecasted_df)
   
@@ -80,7 +80,6 @@ run_forecasting <- function(mydata, testLenInWeek){
 
 makeNStepForcast <- function(exceldata, testLenthsInWeeks, variableOfInterest){
   dfdata = data.frame(exceldata)
-  
   df = data.frame(ds=dfdata$DATE, y=dfdata[,c(variableOfInterest)])
   trainLenthsInWeeks <- nrow(df) - testLenthsInWeeks
   
@@ -89,7 +88,7 @@ makeNStepForcast <- function(exceldata, testLenthsInWeeks, variableOfInterest){
   df_test <- df[(nrow(df) - testLenthsInWeeks + 1):nrow(df), ]
   # print(paste("df_test:\n", df_test))
   
-  model <- prophet(df_train, interval.width = 0.8)
+  model <- prophet(df_train, interval.width = 0.8, weekly.seasonality = TRUE)
   future <- make_future_dataframe(model, periods=testLenthsInWeeks, freq = 'week')
   
   forcast <- predict(model, future)
@@ -103,6 +102,7 @@ makeNStepForcast <- function(exceldata, testLenthsInWeeks, variableOfInterest){
                        up.80 = c(rep(NA, trainLenthsInWeeks), tail(forcast$yhat_upper,testLenthsInWeeks)),)
   
   # print(paste("Forecast data frame:\n ", forcast_df))
+  # prophet_plot_components(model, forcast)
   
   line.cols = c("black", "darkcyan", "goldenrod1")
   shade.cols = brewer.pal(3, "PuBuGn")
@@ -111,7 +111,7 @@ makeNStepForcast <- function(exceldata, testLenthsInWeeks, variableOfInterest){
   
   p <- ggplot(forcast_df, aes(x=ds,y=observation,colour = "Training",group = 1))+
     geom_line(aes(colour = "Training")) +
-    geom_line(forcast_df, mapping=aes(x=ds, y=fitted, colour = "Fitted", group = 1, size=4), linewidth = 0.75) +
+    geom_line(forcast_df, mapping=aes(x=ds, y=fitted, colour = "Fitted", group = 1, linewidth=4), linewidth = 0.75) +
     geom_ribbon(forcast_df, mapping=aes(ds, ymin = lo.80, ymax = up.80, colour='Uncertainty', fill = "80%", group=1)) +
     geom_line(forcast_df, mapping=aes(ds, forecast, colour = "Forecast", group = 1,), linewidth = 0.75) +
     scale_x_date(breaks = seq(forcast_df$ds[1],forcast_df$ds[length(forcast_df$ds)], by = date.breaks), 
